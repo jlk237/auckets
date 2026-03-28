@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auckets — Bid fair. Win real.</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #080808;
+    --surface: #101010;
+    --surface2: #161616;
+    --white: #f4f1ea;
+    --acid: #b8f000;
+    --acid-dim: rgba(184,240,0,0.12);
+    --amber: #f5a623;
+    --amber-dim: rgba(245,166,35,0.13);
+    --amber-border: rgba(245,166,35,0.32);
+    --rust: #c94b1e;
+    --muted: #676560;
+    --border: rgba(244,241,234,0.1);
+    --border-md: rgba(244,241,234,0.2);
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  body { background:var(--black); color:var(--white); font-family:var(--font-body); font-size:15px; line-height:1.6; min-height:100vh; overflow-x:hidden; }
+
+  nav { position:sticky; top:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:0 2rem; height:56px; background:rgba(8,8,8,0.94); backdrop-filter:blur(10px); border-bottom:0.5px solid var(--border); }
+  .logo { font-family:var(--font-display); font-size:26px; letter-spacing:0.04em; color:var(--acid); }
+  .nav-links { display:flex; gap:2rem; align-items:center; }
+  .nav-links a { color:var(--muted); text-decoration:none; font-size:13px; letter-spacing:0.06em; text-transform:uppercase; transition:color 0.2s; cursor:pointer; }
+  .nav-links a:hover, .nav-links a.active { color:var(--white); }
+  .nav-btn { background:var(--acid); color:var(--black); border:none; padding:7px 18px; font-family:var(--font-body); font-size:13px; font-weight:500; letter-spacing:0.04em; cursor:pointer; border-radius:2px; transition:opacity 0.2s; }
+  .nav-btn:hover { opacity:0.85; }
+
+  .page { display:none; }
+  .page.active { display:block; }
+
+  .hero { min-height:88vh; display:flex; flex-direction:column; justify-content:center; padding:5rem 2rem 4rem; position:relative; overflow:hidden; }
+  .hero-bg-text { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-family:var(--font-display); font-size:clamp(120px,22vw,300px); color:rgba(184,240,0,0.025); white-space:nowrap; pointer-events:none; letter-spacing:-0.02em; user-select:none; }
+  .eyebrow { font-family:var(--font-mono); font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--acid); margin-bottom:1.5rem; }
+  .eyebrow span { display:inline-block; width:24px; height:1px; background:var(--acid); vertical-align:middle; margin-right:10px; }
+  h1.hero-title { font-family:var(--font-display); font-size:clamp(52px,9vw,110px); line-height:0.94; letter-spacing:0.01em; max-width:820px; margin-bottom:2rem; }
+  h1.hero-title em { font-style:normal; color:var(--acid); }
+  .hero-sub { max-width:480px; color:var(--muted); font-size:16px; font-weight:300; margin-bottom:3rem; line-height:1.7; }
+  .hero-ctas { display:flex; gap:1rem; align-items:center; flex-wrap:wrap; }
+  .btn-primary { background:var(--acid); color:var(--black); border:none; padding:14px 32px; font-family:var(--font-body); font-size:14px; font-weight:500; letter-spacing:0.04em; cursor:pointer; border-radius:2px; transition:opacity 0.2s; }
+  .btn-primary:hover { opacity:0.85; }
+  .btn-ghost { background:transparent; color:var(--white); border:0.5px solid rgba(244,241,234,0.3); padding:14px 32px; font-family:var(--font-body); font-size:14px; letter-spacing:0.04em; cursor:pointer; border-radius:2px; transition:border-color 0.2s; }
+  .btn-ghost:hover { border-color:rgba(244,241,234,0.6); }
+  .hero-stats { display:flex; gap:3rem; margin-top:5rem; padding-top:2rem; border-top:0.5px solid var(--border); }
+  .stat-num { font-family:var(--font-display); font-size:36px; color:var(--acid); line-height:1; margin-bottom:4px; }
+  .stat-label { font-size:12px; color:var(--muted); letter-spacing:0.06em; text-transform:uppercase; }
+
+  .section { padding:5rem 2rem; border-top:0.5px solid var(--border); }
+  .section-label { font-family:var(--font-mono); font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted); margin-bottom:0.75rem; }
+  .section-title { font-family:var(--font-display); font-size:clamp(36px,5vw,58px); line-height:1; margin-bottom:3.5rem; max-width:600px; }
+  .section-title em { font-style:normal; color:var(--acid); }
+
+  .tiers-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); border:0.5px solid var(--border); border-radius:4px; overflow:hidden; }
+  .tier-card { background:var(--surface); padding:2rem 1.75rem; position:relative; transition:background 0.2s; }
+  .tier-card:hover { background:var(--surface2); }
+  .tier-card.featured { background:#0c1600; border-left:1px solid rgba(184,240,0,0.18); border-right:1px solid rgba(184,240,0,0.18); }
+  .tier-card.featured:hover { background:#101a00; }
+  .tier-card.lowball-card { background:#120d08; }
+  .tier-card.lowball-card:hover { background:#181008; }
+  .tier-badge { display:inline-block; font-family:var(--font-mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; padding:4px 10px; border-radius:2px; margin-bottom:1.5rem; }
+  .badge-exact { background:var(--acid-dim); color:var(--acid); }
+  .badge-entry { background:var(--acid-dim); color:var(--acid); border:0.5px solid rgba(184,240,0,0.35); }
+  .badge-lowball { background:var(--amber-dim); color:var(--amber); border:0.5px solid var(--amber-border); }
+  .tier-name { font-family:var(--font-display); font-size:34px; letter-spacing:0.02em; line-height:1; margin-bottom:0.4rem; }
+  .tier-price-range { font-family:var(--font-mono); font-size:12px; letter-spacing:0.04em; margin-bottom:1.25rem; }
+  .price-green { color:var(--acid); }
+  .price-amber { color:var(--amber); }
+  .tier-desc { font-size:13px; color:var(--muted); line-height:1.65; margin-bottom:1.5rem; }
+  .tier-detail { font-size:12px; color:rgba(244,241,234,0.35); line-height:1.5; font-family:var(--font-mono); letter-spacing:0.02em; }
+  .tier-num { position:absolute; top:1.5rem; right:1.75rem; font-family:var(--font-display); font-size:72px; line-height:1; color:rgba(244,241,234,0.03); pointer-events:none; }
+
+  .why-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+  .why-item { padding:1.75rem; border:0.5px solid var(--border); border-radius:4px; background:var(--surface); }
+  .why-icon { width:36px; height:36px; background:var(--acid-dim); border-radius:2px; display:flex; align-items:center; justify-content:center; margin-bottom:1rem; }
+  .why-icon svg { width:18px; height:18px; stroke:var(--acid); fill:none; stroke-width:1.5; }
+  .why-title { font-size:15px; font-weight:500; margin-bottom:0.5rem; }
+  .why-desc { font-size:13px; color:var(--muted); line-height:1.65; }
+
+  .events-header { padding:3rem 2rem 2rem; }
+  .events-filter { display:flex; gap:0.5rem; margin-top:1.5rem; flex-wrap:wrap; }
+  .filter-btn { background:transparent; color:var(--muted); border:0.5px solid var(--border); padding:7px 18px; font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; border-radius:2px; transition:all 0.15s; }
+  .filter-btn:hover { color:var(--white); border-color:var(--border-md); }
+  .filter-btn.active { background:var(--acid); color:var(--black); border-color:var(--acid); }
+
+  .events-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1px; background:var(--border); border-top:0.5px solid var(--border); border-bottom:0.5px solid var(--border); }
+  .event-card { background:var(--surface); padding:1.5rem; cursor:pointer; transition:background 0.15s; }
+  .event-card:hover { background:var(--surface2); }
+  .event-type-tag { display:inline-block; font-family:var(--font-mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; padding:3px 8px; border-radius:2px; margin-bottom:1rem; }
+  .tag-music { background:var(--acid-dim); color:var(--acid); }
+  .tag-sports { background:var(--amber-dim); color:var(--amber); }
+  .event-artist { font-family:var(--font-display); font-size:28px; letter-spacing:0.02em; line-height:1.05; margin-bottom:0.35rem; }
+  .event-meta { font-family:var(--font-mono); font-size:11px; color:var(--muted); letter-spacing:0.06em; margin-bottom:1.25rem; line-height:1.6; }
+  .event-bid-row { display:flex; align-items:flex-end; justify-content:space-between; padding-top:1rem; border-top:0.5px solid var(--border); }
+  .bid-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:2px; font-family:var(--font-mono); }
+  .bid-amount { font-family:var(--font-display); font-size:26px; color:var(--acid); }
+  .bid-count { font-family:var(--font-mono); font-size:10px; color:var(--muted); text-align:right; }
+  .event-timer { font-family:var(--font-mono); font-size:11px; color:var(--amber); letter-spacing:0.06em; }
+
+  .bid-layout { display:grid; grid-template-columns:1fr 380px; min-height:calc(100vh - 56px); }
+  .bid-main { padding:3rem 2rem; border-right:0.5px solid var(--border); }
+  .bid-sidebar { padding:2rem 1.5rem; background:var(--surface); }
+
+  .back-btn { display:inline-flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; cursor:pointer; border:none; background:none; padding:0; margin-bottom:2rem; transition:color 0.15s; }
+  .back-btn:hover { color:var(--white); }
+  .event-hero-title { font-family:var(--font-display); font-size:clamp(44px,6vw,72px); line-height:0.95; letter-spacing:0.01em; margin-bottom:0.75rem; }
+  .event-hero-meta { font-family:var(--font-mono); font-size:12px; color:var(--muted); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:3rem; line-height:1.8; }
+
+  .tier-selector { margin-bottom:2rem; }
+  .tier-selector-label { font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:var(--muted); margin-bottom:0.75rem; }
+  .tier-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); border:0.5px solid var(--border); border-radius:3px; overflow:hidden; }
+  .tier-tab { background:var(--surface); padding:1rem; cursor:pointer; transition:background 0.15s; border:none; color:var(--white); text-align:left; border-bottom:2px solid transparent; }
+  .tier-tab:hover { background:var(--surface2); }
+  .tier-tab.active-exact { background:rgba(184,240,0,0.07); border-bottom-color:var(--acid); }
+  .tier-tab.active-amber { background:rgba(245,166,35,0.07); border-bottom-color:var(--amber); }
+  .tier-tab-name { font-family:var(--font-display); font-size:17px; letter-spacing:0.04em; display:block; margin-bottom:4px; }
+  .tier-tab-price { font-family:var(--font-display); font-size:20px; display:block; margin-bottom:2px; }
+  .tier-tab-sub { font-family:var(--font-mono); font-size:9px; color:var(--muted); letter-spacing:0.08em; text-transform:uppercase; }
+  .price-acid { color:var(--acid); }
+  .price-amber-col { color:var(--amber); }
+
+  .tier-info-panel { padding:1.25rem 1.5rem; border:0.5px solid var(--border); border-radius:3px; background:#0c0c0c; margin-bottom:2rem; transition:border-color 0.2s; }
+  .tier-info-panel.panel-amber { border-color:var(--amber-border); }
+  .tier-info-panel.panel-green { border-color:rgba(184,240,0,0.2); }
+  .tier-info-title { font-weight:500; margin-bottom:0.35rem; font-size:14px; }
+  .tier-info-desc { font-size:13px; color:var(--muted); line-height:1.65; }
+  .tier-info-detail { margin-top:0.75rem; font-family:var(--font-mono); font-size:11px; line-height:1.5; }
+  .detail-green { color:rgba(184,240,0,0.6); }
+  .detail-amber { color:rgba(245,166,35,0.65); }
+
+  .seat-map { padding:1.5rem; border:0.5px solid var(--border); border-radius:3px; background:#0c0c0c; }
+  .seat-map-label { font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:1rem; }
+  .venue-diagram { display:flex; flex-direction:column; align-items:center; gap:6px; margin-bottom:1rem; width:100%; }
+  .stage-bar { width:50%; height:26px; background:var(--acid-dim); border:0.5px solid rgba(184,240,0,0.25); border-radius:2px; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:10px; color:var(--acid); letter-spacing:0.1em; text-transform:uppercase; }
+  .seat-row { display:flex; gap:5px; width:100%; }
+  .seat-block { flex:1; padding:0.55rem 0.5rem; border:0.5px solid var(--border); border-radius:2px; cursor:pointer; transition:all 0.15s; text-align:center; background:var(--surface); }
+  .seat-block:hover { border-color:var(--border-md); background:var(--surface2); }
+  .seat-block.selected { border-color:var(--acid); background:var(--acid-dim); }
+  .seat-block.selected-amber { border-color:var(--amber); background:var(--amber-dim); }
+  .seat-block-name { font-family:var(--font-display); font-size:15px; display:block; margin-bottom:1px; }
+  .seat-block-detail { font-family:var(--font-mono); font-size:9px; color:var(--muted); letter-spacing:0.04em; }
+  .seat-block.selected .seat-block-name { color:var(--acid); }
+  .seat-block.selected-amber .seat-block-name { color:var(--amber); }
+  .seat-avail { font-family:var(--font-mono); font-size:10px; color:var(--muted); text-align:center; margin-top:6px; }
+
+  .sidebar-section { margin-bottom:1.75rem; padding-bottom:1.75rem; border-bottom:0.5px solid var(--border); }
+  .sidebar-label { font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:var(--muted); margin-bottom:0.75rem; }
+
+  .price-breakdown { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:0.75rem; }
+  .price-pill { padding:0.65rem 0.5rem; border-radius:2px; text-align:center; border:0.5px solid var(--border); cursor:pointer; transition:all 0.15s; }
+  .price-pill:hover { border-color:var(--border-md); }
+  .price-pill.active-green { border-color:rgba(184,240,0,0.4); background:var(--acid-dim); }
+  .price-pill.active-amber-pill { border-color:var(--amber-border); background:var(--amber-dim); }
+  .pp-label { font-family:var(--font-mono); font-size:9px; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); display:block; margin-bottom:4px; }
+  .pp-price { font-family:var(--font-display); font-size:20px; display:block; }
+  .pp-green { color:var(--acid); }
+  .pp-amber { color:var(--amber); }
+  .bid-meta-row { font-family:var(--font-mono); font-size:11px; color:var(--muted); letter-spacing:0.04em; }
+
+  .bid-input-row { display:flex; gap:8px; margin-top:0.75rem; }
+  .bid-input { flex:1; background:#0c0c0c; border:0.5px solid var(--border); color:var(--white); padding:10px 14px; font-family:var(--font-display); font-size:22px; border-radius:2px; outline:none; transition:border-color 0.15s; }
+  .bid-input:focus { border-color:var(--acid); }
+  .bid-input.amber-input:focus { border-color:var(--amber); }
+  .place-bid-btn { background:var(--acid); color:var(--black); border:none; padding:0 20px; font-family:var(--font-body); font-size:13px; font-weight:500; letter-spacing:0.04em; cursor:pointer; border-radius:2px; transition:opacity 0.2s; white-space:nowrap; }
+  .place-bid-btn:hover { opacity:0.85; }
+  .place-bid-btn.amber-btn { background:var(--amber); }
+  .bid-increment-row { display:flex; gap:6px; margin-top:8px; }
+  .increment-btn { background:transparent; border:0.5px solid var(--border); color:var(--muted); padding:5px 10px; font-family:var(--font-mono); font-size:11px; cursor:pointer; border-radius:2px; transition:all 0.15s; }
+  .increment-btn:hover { color:var(--white); border-color:var(--border-md); }
+
+  .timer-display { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:0.75rem; }
+  .timer-unit { text-align:center; }
+  .timer-num { font-family:var(--font-display); font-size:32px; color:var(--white); line-height:1; display:block; }
+  .timer-unit-label { font-family:var(--font-mono); font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; }
+
+  .activity-item { display:flex; justify-content:space-between; align-items:center; padding:0.5rem 0; border-bottom:0.5px solid var(--border); animation:fadeSlide 0.3s ease; }
+  @keyframes fadeSlide { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+  .activity-bidder { font-family:var(--font-mono); font-size:11px; color:var(--muted); }
+  .activity-amount { font-family:var(--font-display); font-size:17px; color:var(--white); }
+  .activity-tier { font-family:var(--font-mono); font-size:9px; padding:2px 6px; border-radius:2px; }
+  .at-exact { background:var(--acid-dim); color:var(--acid); }
+  .at-entry { background:var(--acid-dim); color:var(--acid); }
+  .at-low { background:var(--amber-dim); color:var(--amber); }
+
+  .buy-now-panel { background:rgba(201,75,30,0.07); border:0.5px solid rgba(201,75,30,0.22); border-radius:3px; padding:1.25rem; }
+  .buy-now-label { font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--amber); margin-bottom:0.5rem; }
+  .buy-now-price { font-family:var(--font-display); font-size:32px; color:var(--white); margin-bottom:0.5rem; }
+  .buy-now-desc { font-size:12px; color:var(--muted); margin-bottom:1rem; line-height:1.5; }
+  .buy-now-btn { width:100%; background:var(--rust); color:var(--white); border:none; padding:11px; font-family:var(--font-body); font-size:13px; font-weight:500; letter-spacing:0.04em; cursor:pointer; border-radius:2px; transition:opacity 0.2s; }
+  .buy-now-btn:hover { opacity:0.85; }
+
+  .bid-flash { position:fixed; bottom:2rem; right:2rem; background:var(--acid); color:var(--black); padding:12px 20px; border-radius:2px; font-family:var(--font-mono); font-size:12px; letter-spacing:0.06em; opacity:0; pointer-events:none; transition:opacity 0.25s; z-index:200; }
+  .bid-flash.show { opacity:1; }
+  .bid-flash.amber-flash { background:var(--amber); }
+
+  @media (max-width:900px) {
+    .bid-layout { grid-template-columns:1fr; }
+    .bid-sidebar { border-top:0.5px solid var(--border); }
+    .tiers-grid { grid-template-columns:1fr; }
+    .why-grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">AUCKETS</div>
+  <div class="nav-links">
+    <a onclick="showPage('home')" id="nav-home" class="active">Home</a>
+    <a onclick="showPage('events')" id="nav-events">Events</a>
+    <a onclick="showPage('how')" id="nav-how">How it works</a>
+    <button class="nav-btn">Sign up</button>
+  </div>
+</nav>
+
+<!-- HOME -->
+<div id="page-home" class="page active">
+  <section class="hero">
+    <div class="hero-bg-text">AUCKETS</div>
+    <p class="eyebrow"><span></span>The ticket market, reimagined</p>
+    <h1 class="hero-title">Bid fair.<br><em>Win real.</em></h1>
+    <p class="hero-sub">Auction-based ticketing that puts money back in artists' pockets — and gives every fan a shot at getting in.</p>
+    <div class="hero-ctas">
+      <button class="btn-primary" onclick="showPage('events')">Browse events</button>
+      <button class="btn-ghost" onclick="showPage('how')">How it works</button>
+    </div>
+    <div class="hero-stats">
+      <div><div class="stat-num">0%</div><div class="stat-label">Hidden fees</div></div>
+      <div><div class="stat-num">100%</div><div class="stat-label">Artist-backed</div></div>
+      <div><div class="stat-num">3</div><div class="stat-label">Ways to get in</div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="section-label">The problem</p>
+    <div class="section-title">Scalpers win.<br><em>You lose.</em><br>Artists get nothing.</div>
+    <div class="why-grid">
+      <div class="why-item">
+        <div class="why-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+        <div class="why-title">Artists deserve the upside</div>
+        <div class="why-desc">When a ticket resells for 5× face value, that money goes to a bot operator. Auctions let the real market price flow back to the people who made the show worth attending.</div>
+      </div>
+      <div class="why-item">
+        <div class="why-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+        <div class="why-title">No more lottery anxiety</div>
+        <div class="why-desc">Our tier system means you always know what you're bidding for. Guaranteed entry? Lowball and see? You choose your risk level — and your price range.</div>
+      </div>
+      <div class="why-item">
+        <div class="why-icon"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+        <div class="why-title">Resale stays on platform</div>
+        <div class="why-desc">Can't make it? Resell through Auckets. Price caps keep things honest. A cut goes back to the artist. The ecosystem stays clean.</div>
+      </div>
+      <div class="why-item">
+        <div class="why-icon"><svg viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
+        <div class="why-title">Built with artists</div>
+        <div class="why-desc">We didn't build this and pitch it to artists. Artists helped design it. That's why it actually works for the people on stage, not just the people behind screens.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <p class="section-label">Tiers</p>
+    <div class="section-title">Three ways<br>to <em>get in.</em></div>
+    <div class="tiers-grid">
+      <div class="tier-card">
+        <div class="tier-num">1</div>
+        <div class="tier-badge badge-exact">Exact seat</div>
+        <div class="tier-name">LOCK IT IN</div>
+        <div class="tier-price-range price-green">$200 – $600+ · market price</div>
+        <div class="tier-desc">Bid on a specific seat. Highest bidder takes it. You know exactly where you'll be sitting before you commit.</div>
+        <div class="tier-detail">Winner-take-all. Outbid? Funds returned instantly.</div>
+      </div>
+      <div class="tier-card featured">
+        <div class="tier-num">2</div>
+        <div class="tier-badge badge-entry">Most popular</div>
+        <div class="tier-name">GET IN</div>
+        <div class="tier-price-range price-green">$80 – $350 · entry pool</div>
+        <div class="tier-desc">Bid for access, not location. You're guaranteed a seat — someone may outbid you on section, but you still get in.</div>
+        <div class="tier-detail">Lose your seat preference, not your spot.</div>
+      </div>
+      <div class="tier-card lowball-card">
+        <div class="tier-num">3</div>
+        <div class="tier-badge badge-lowball">Lowball</div>
+        <div class="tier-name">SHOOT YOUR SHOT</div>
+        <div class="tier-price-range price-amber">$15 – $80 · standby bid</div>
+        <div class="tier-desc">Throw in a low bid and find out 72 hours before the show. Great for locals, students, and anyone who loves the thrill of maybe.</div>
+        <div class="tier-detail">In or refunded — 72 hrs before doors. No limbo.</div>
+      </div>
+    </div>
+    <div style="margin-top:2rem;text-align:center;">
+      <button class="btn-primary" onclick="showPage('events')">See live auctions</button>
+    </div>
+  </section>
+</div>
+
+<!-- EVENTS -->
+<div id="page-events" class="page">
+  <div class="events-header">
+    <p class="section-label">Live auctions</p>
+    <div class="section-title" style="margin-bottom:1.5rem;">Upcoming <em>events</em></div>
+    <div class="events-filter">
+      <button class="filter-btn active" onclick="filterEvents(this,'all')">All</button>
+      <button class="filter-btn" onclick="filterEvents(this,'music')">Music</button>
+      <button class="filter-btn" onclick="filterEvents(this,'sports')">Sports</button>
+      <button class="filter-btn" onclick="filterEvents(this,'hot')">Ending soon</button>
+    </div>
+  </div>
+  <div class="events-grid" id="events-grid"></div>
+</div>
+
+<!-- BIDDING -->
+<div id="page-bid" class="page">
+  <div class="bid-layout">
+    <div class="bid-main">
+      <button class="back-btn" onclick="showPage('events')">← Back to events</button>
+      <span id="bid-event-tag" class="event-type-tag tag-music" style="display:inline-block;margin-bottom:1rem;"></span>
+      <div class="event-hero-title" id="bid-event-title"></div>
+      <div class="event-hero-meta" id="bid-event-meta"></div>
+
+      <div class="tier-selector">
+        <div class="tier-selector-label">Choose your tier</div>
+        <div class="tier-tabs">
+          <button class="tier-tab active-exact" onclick="selectTier('exact',this)">
+            <span class="tier-tab-name">Lock it in</span>
+            <span class="tier-tab-price price-acid" id="tt-price-exact">—</span>
+            <span class="tier-tab-sub">Exact seat · top bid</span>
+          </button>
+          <button class="tier-tab" onclick="selectTier('entry',this)">
+            <span class="tier-tab-name">Get in</span>
+            <span class="tier-tab-price price-acid" id="tt-price-entry">—</span>
+            <span class="tier-tab-sub">Entry pool · top bid</span>
+          </button>
+          <button class="tier-tab" onclick="selectTier('lowball',this)">
+            <span class="tier-tab-name">Shoot your shot</span>
+            <span class="tier-tab-price price-amber-col" id="tt-price-lowball">—</span>
+            <span class="tier-tab-sub">Standby · top bid</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="tier-info-panel panel-green" id="tier-info-panel">
+        <div class="tier-info-title" id="tier-info-title">Exact seat auction</div>
+        <div class="tier-info-desc" id="tier-info-desc">You're bidding on a specific seat. Highest bid wins — winner-take-all. If you're outbid, your funds are returned immediately.</div>
+        <div class="tier-info-detail detail-green" id="tier-info-detail">→ Outbid? Your money comes back instantly. No holds, no delays.</div>
+      </div>
+
+      <div class="seat-map">
+        <div class="seat-map-label">Select section</div>
+        <div class="venue-diagram">
+          <div class="stage-bar">Stage</div>
+          <div class="seat-row">
+            <div class="seat-block selected" onclick="selectSeat(this,'Floor GA')" data-section="Floor GA" data-selected="true">
+              <span class="seat-block-name">Floor</span>
+              <span class="seat-block-detail">GA · Standing</span>
+            </div>
+          </div>
+          <div class="seat-row">
+            <div class="seat-block" onclick="selectSeat(this,'Sec 101')" data-section="Sec 101"><span class="seat-block-name">101</span><span class="seat-block-detail">Rows 1–8</span></div>
+            <div class="seat-block" onclick="selectSeat(this,'Sec 102')" data-section="Sec 102"><span class="seat-block-name">102</span><span class="seat-block-detail">Rows 1–8</span></div>
+            <div class="seat-block" onclick="selectSeat(this,'Sec 103')" data-section="Sec 103"><span class="seat-block-name">103</span><span class="seat-block-detail">Rows 1–8</span></div>
+            <div class="seat-block" onclick="selectSeat(this,'Sec 104')" data-section="Sec 104"><span class="seat-block-name">104</span><span class="seat-block-detail">Rows 1–8</span></div>
+          </div>
+          <div class="seat-row">
+            <div class="seat-block" onclick="selectSeat(this,'Sec 201')" data-section="Sec 201"><span class="seat-block-name">201</span><span class="seat-block-detail">Rows 9–20</span></div>
+            <div class="seat-block" onclick="selectSeat(this,'Sec 202')" data-section="Sec 202"><span class="seat-block-name">202</span><span class="seat-block-detail">Rows 9–20</span></div>
+            <div class="seat-block" onclick="selectSeat(this,'Sec 203')" data-section="Sec 203"><span class="seat-block-name">203</span><span class="seat-block-detail">Rows 9–20</span></div>
+            <div class="seat-block" onclick="selectSeat(this,'Sec 204')" data-section="Sec 204"><span class="seat-block-name">204</span><span class="seat-block-detail">Rows 9–20</span></div>
+          </div>
+          <div class="seat-row">
+            <div class="seat-block" onclick="selectSeat(this,'Upper 301')" data-section="Upper 301"><span class="seat-block-name">301</span><span class="seat-block-detail">Upper deck</span></div>
+            <div class="seat-block" onclick="selectSeat(this,'Upper 302')" data-section="Upper 302"><span class="seat-block-name">302</span><span class="seat-block-detail">Upper deck</span></div>
+            <div class="seat-block" onclick="selectSeat(this,'Upper 303')" data-section="Upper 303"><span class="seat-block-name">303</span><span class="seat-block-detail">Upper deck</span></div>
+            <div class="seat-block" onclick="selectSeat(this,'Upper 304')" data-section="Upper 304"><span class="seat-block-name">304</span><span class="seat-block-detail">Upper deck</span></div>
+          </div>
+        </div>
+        <div class="seat-avail" id="seat-avail">Floor GA selected · 12 bids active</div>
+      </div>
+    </div>
+
+    <div class="bid-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Top bid by tier</div>
+        <div class="price-breakdown">
+          <div class="price-pill active-green" onclick="selectTierFromPill('exact')" id="pill-exact">
+            <span class="pp-label">Lock it in</span>
+            <span class="pp-price pp-green" id="pill-price-exact">—</span>
+          </div>
+          <div class="price-pill" onclick="selectTierFromPill('entry')" id="pill-entry">
+            <span class="pp-label">Get in</span>
+            <span class="pp-price pp-green" id="pill-price-entry">—</span>
+          </div>
+          <div class="price-pill" onclick="selectTierFromPill('lowball')" id="pill-lowball">
+            <span class="pp-label">Standby</span>
+            <span class="pp-price pp-amber" id="pill-price-lowball">—</span>
+          </div>
+        </div>
+        <div class="bid-meta-row" id="bid-meta-row">— bids · auction live</div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label" id="bid-input-label">Your bid — Lock it in</div>
+        <div class="bid-input-row">
+          <input class="bid-input" id="bid-input" type="number" placeholder="$0" min="0">
+          <button class="place-bid-btn" id="place-bid-btn" onclick="placeBid()">Bid now</button>
+        </div>
+        <div class="bid-increment-row">
+          <button class="increment-btn" onclick="addAmount(10)">+$10</button>
+          <button class="increment-btn" onclick="addAmount(25)">+$25</button>
+          <button class="increment-btn" onclick="addAmount(50)">+$50</button>
+          <button class="increment-btn" onclick="addAmount(100)">+$100</button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">Auction closes in</div>
+        <div class="timer-display">
+          <div class="timer-unit"><span class="timer-num" id="timer-h">02</span><span class="timer-unit-label">hrs</span></div>
+          <div class="timer-unit"><span class="timer-num" id="timer-m">14</span><span class="timer-unit-label">min</span></div>
+          <div class="timer-unit"><span class="timer-num" id="timer-s">33</span><span class="timer-unit-label">sec</span></div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">Live activity</div>
+        <div id="activity-feed"></div>
+      </div>
+
+      <div class="buy-now-panel">
+        <div class="buy-now-label">Skip the auction</div>
+        <div class="buy-now-price" id="buy-now-price">—</div>
+        <div class="buy-now-desc">Guaranteed floor access. No waiting, no bidding. Premium price, zero uncertainty.</div>
+        <button class="buy-now-btn">Buy now — guaranteed</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<div id="page-how" class="page">
+  <div style="padding:3rem 2rem;">
+    <p class="section-label">How it works</p>
+    <div class="section-title" style="margin-bottom:3rem;">Three tiers.<br><em>One platform.</em></div>
+    <div style="max-width:640px;">
+      <div style="margin-bottom:2.5rem;padding-bottom:2.5rem;border-bottom:0.5px solid var(--border);display:flex;gap:1.5rem;align-items:flex-start;">
+        <div style="font-family:var(--font-display);font-size:48px;color:var(--acid);line-height:1;min-width:48px;">1</div>
+        <div>
+          <div style="font-family:var(--font-display);font-size:24px;margin-bottom:0.25rem;">LOCK IT IN — Exact seat auction</div>
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--acid);margin-bottom:0.75rem;">$200 – $600+ · market rate</div>
+          <div style="color:var(--muted);font-size:14px;line-height:1.7;">Bid on a specific seat. The highest bidder wins. Simple, transparent, no hidden secondary market. If you're outbid, your money is returned immediately.</div>
+        </div>
+      </div>
+      <div style="margin-bottom:2.5rem;padding-bottom:2.5rem;border-bottom:0.5px solid var(--border);display:flex;gap:1.5rem;align-items:flex-start;">
+        <div style="font-family:var(--font-display);font-size:48px;color:var(--acid);line-height:1;min-width:48px;">2</div>
+        <div>
+          <div style="font-family:var(--font-display);font-size:24px;margin-bottom:0.25rem;">GET IN — Guaranteed entry</div>
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--acid);margin-bottom:0.75rem;">$80 – $350 · entry pool</div>
+          <div style="color:var(--muted);font-size:14px;line-height:1.7;">You're bidding for access, not a specific seat. If someone outbids you on section, you still get in — just a different spot. Your entry is guaranteed. This is the most popular tier.</div>
+        </div>
+      </div>
+      <div style="margin-bottom:2.5rem;padding-bottom:2.5rem;border-bottom:0.5px solid var(--border);display:flex;gap:1.5rem;align-items:flex-start;">
+        <div style="font-family:var(--font-display);font-size:48px;color:var(--amber);line-height:1;min-width:48px;">3</div>
+        <div>
+          <div style="font-family:var(--font-display);font-size:24px;margin-bottom:0.25rem;">SHOOT YOUR SHOT — Lowball standby</div>
+          <div style="font-family:var(--font-mono);font-size:11px;color:var(--amber);margin-bottom:0.75rem;">$15 – $80 · standby bid</div>
+          <div style="color:var(--muted);font-size:14px;line-height:1.7;">Put in a low bid and find out 72 hours before the show. If seats remain and your bid clears the threshold, you're in. Otherwise, full refund. Great for locals and students.</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:1.5rem;align-items:flex-start;">
+        <div style="font-family:var(--font-display);font-size:48px;color:var(--rust);line-height:1;min-width:48px;">+</div>
+        <div>
+          <div style="font-family:var(--font-display);font-size:24px;margin-bottom:0.25rem;">BUY NOW — Premium guaranteed</div>
+          <div style="font-family:var(--font-mono);font-size:11px;color:#e07a4a;margin-bottom:0.75rem;">Fixed price · skip the auction entirely</div>
+          <div style="color:var(--muted);font-size:14px;line-height:1.7;">Every event has a buy-now option at a premium. Skip the auction entirely, know your seat, move on with your life.</div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:3rem;"><button class="btn-primary" onclick="showPage('events')">See live auctions</button></div>
+  </div>
+</div>
+
+<div class="bid-flash" id="bid-flash">Bid placed</div>
+
+<script>
+const eventsData = [
+  { id:0, artist:'Kendrick Lamar', type:'music', venue:'SoFi Stadium', city:'Los Angeles, CA', date:'Apr 18, 2025', bids:214, buyNow:650, timer:'1h 22m', hot:true, prices:{exact:347,entry:198,lowball:54} },
+  { id:1, artist:'Chappell Roan', type:'music', venue:'Madison Square Garden', city:'New York, NY', date:'Apr 26, 2025', bids:98, buyNow:420, timer:'3h 44m', hot:false, prices:{exact:189,entry:112,lowball:34} },
+  { id:2, artist:'Lakers vs Celtics', type:'sports', venue:'Crypto.com Arena', city:'Los Angeles, CA', date:'Apr 21, 2025', bids:301, buyNow:900, timer:'0h 47m', hot:true, prices:{exact:520,entry:290,lowball:72} },
+  { id:3, artist:'Sabrina Carpenter', type:'music', venue:'United Center', city:'Chicago, IL', date:'May 3, 2025', bids:167, buyNow:480, timer:'5h 12m', hot:false, prices:{exact:210,entry:125,lowball:40} },
+  { id:4, artist:'Warriors vs Knicks', type:'sports', venue:'Chase Center', city:'San Francisco, CA', date:'Apr 19, 2025', bids:188, buyNow:750, timer:'2h 05m', hot:true, prices:{exact:390,entry:225,lowball:65} },
+  { id:5, artist:'Mitski', type:'music', venue:'Red Rocks Amphitheatre', city:'Morrison, CO', date:'May 10, 2025', bids:77, buyNow:310, timer:'6h 33m', hot:false, prices:{exact:145,entry:84,lowball:26} },
+];
+
+let currentEvent = null;
+let activeTier = 'exact';
+let timerSecs = 0;
+let timerInterval = null;
+let activityInterval = null;
+const names = ['A****n','j****e','M****a','T****s','K****l','B****r','s****y','R****z'];
+const tierKeys = ['exact','entry','entry','lowball','exact','entry','lowball'];
+
+const tierMeta = {
+  exact: { title:'Exact seat auction', desc:"You're bidding on a specific seat. Highest bid wins — winner-take-all. You know exactly where you'll be before you commit.", detail:'→ Outbid? Your money comes back instantly. No holds, no delays.', detailCls:'detail-green', panelCls:'panel-green' },
+  entry: { title:'Guaranteed entry', desc:"Bid for access, not location. You're guaranteed a seat — someone may outbid you on section preference, but you always get in.", detail:'→ Entry pool fills from highest bids down. Your spot is secure.', detailCls:'detail-green', panelCls:'panel-green' },
+  lowball: { title:'Lowball standby', desc:"Put in a low bid and find out 72 hours before doors. If seats remain and your bid clears, you're in. Otherwise, full refund — no limbo.", detail:'→ Confirmation or refund 72 hrs before showtime.', detailCls:'detail-amber', panelCls:'panel-amber' }
+};
+
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  const n = document.getElementById('nav-'+p);
+  if (n) n.classList.add('active');
+  if (p === 'events') renderEvents('all');
+  window.scrollTo(0,0);
+}
+
+function renderEvents(filter) {
+  let list = eventsData;
+  if (filter==='music') list = eventsData.filter(e=>e.type==='music');
+  if (filter==='sports') list = eventsData.filter(e=>e.type==='sports');
+  if (filter==='hot') list = eventsData.filter(e=>e.hot);
+  document.getElementById('events-grid').innerHTML = list.map(e => `
+    <div class="event-card" onclick="openBid(${e.id})">
+      <span class="event-type-tag tag-${e.type}">${e.type}</span>
+      <div class="event-artist">${e.artist}</div>
+      <div class="event-meta">${e.venue}<br>${e.city} · ${e.date}</div>
+      <div class="event-bid-row">
+        <div><div class="bid-label">Top bid · exact seat</div><div class="bid-amount">$${e.prices.exact}</div></div>
+        <div style="text-align:right;"><div class="bid-count">${e.bids} bids</div><div class="event-timer" style="margin-top:4px;">${e.timer} left</div></div>
+      </div>
+    </div>`).join('');
+}
+
+function filterEvents(btn, filter) {
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderEvents(filter);
+}
+
+function openBid(id) {
+  currentEvent = eventsData[id];
+  activeTier = 'exact';
+  showPage('bid');
+  document.getElementById('bid-event-title').textContent = currentEvent.artist;
+  document.getElementById('bid-event-tag').textContent = currentEvent.type;
+  document.getElementById('bid-event-tag').className = 'event-type-tag tag-'+currentEvent.type;
+  document.getElementById('bid-event-meta').innerHTML = currentEvent.venue+'<br>'+currentEvent.city+' &nbsp;·&nbsp; '+currentEvent.date;
+  document.getElementById('buy-now-price').textContent = '$'+currentEvent.buyNow;
+  document.getElementById('bid-meta-row').textContent = currentEvent.bids+' bids · auction live';
+  updatePrices();
+  selectTier('exact', document.querySelector('.tier-tab'));
+  const parts = currentEvent.timer.replace('h','').replace('m','').trim().split(' ');
+  timerSecs = (parseInt(parts[0]||0)*3600)+(parseInt(parts[1]||0)*60);
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(tickTimer, 1000);
+  tickTimer();
+  renderActivity();
+  if (activityInterval) clearInterval(activityInterval);
+  activityInterval = setInterval(()=>addActivityItem(), 3800+Math.random()*3500);
+}
+
+function updatePrices() {
+  const p = currentEvent.prices;
+  document.getElementById('tt-price-exact').textContent = '$'+p.exact;
+  document.getElementById('tt-price-entry').textContent = '$'+p.entry;
+  document.getElementById('tt-price-lowball').textContent = '$'+p.lowball;
+  document.getElementById('pill-price-exact').textContent = '$'+p.exact;
+  document.getElementById('pill-price-entry').textContent = '$'+p.entry;
+  document.getElementById('pill-price-lowball').textContent = '$'+p.lowball;
+}
+
+function selectTier(tier, btn) {
+  activeTier = tier;
+  const isAmber = tier==='lowball';
+  document.querySelectorAll('.tier-tab').forEach(t=>{ t.className='tier-tab'; });
+  btn.classList.add(isAmber?'active-amber':'active-exact');
+  const meta = tierMeta[tier];
+  document.getElementById('tier-info-title').textContent = meta.title;
+  document.getElementById('tier-info-desc').textContent = meta.desc;
+  const d = document.getElementById('tier-info-detail');
+  d.textContent = meta.detail; d.className='tier-info-detail '+meta.detailCls;
+  document.getElementById('tier-info-panel').className='tier-info-panel '+meta.panelCls;
+  const price = currentEvent ? currentEvent.prices[tier] : 0;
+  document.getElementById('bid-input').placeholder = '$'+(price+1);
+  document.getElementById('bid-input').className = 'bid-input'+(isAmber?' amber-input':'');
+  document.getElementById('place-bid-btn').className = 'place-bid-btn'+(isAmber?' amber-btn':'');
+  document.getElementById('bid-input-label').textContent = 'Your bid — '+meta.title;
+  document.querySelectorAll('.price-pill').forEach(p=>p.className='price-pill');
+  document.getElementById('pill-'+tier).classList.add(isAmber?'active-amber-pill':'active-green');
+  document.querySelectorAll('.seat-block').forEach(b=>{ b.classList.remove('selected','selected-amber'); });
+  const sel = document.querySelector('.seat-block[data-selected="true"]') || document.querySelector('.seat-block');
+  if (sel) sel.classList.add(isAmber?'selected-amber':'selected');
+}
+
+function selectTierFromPill(tier) {
+  const tabs = document.querySelectorAll('.tier-tab');
+  selectTier(tier, tabs[tier==='exact'?0:tier==='entry'?1:2]);
+}
+
+function selectSeat(el, section) {
+  const isAmber = activeTier==='lowball';
+  document.querySelectorAll('.seat-block').forEach(b=>{ b.classList.remove('selected','selected-amber'); delete b.dataset.selected; });
+  el.classList.add(isAmber?'selected-amber':'selected');
+  el.dataset.selected = 'true';
+  document.getElementById('seat-avail').textContent = section+' selected · '+(Math.floor(Math.random()*20)+3)+' bids active';
+}
+
+function tickTimer() {
+  if (timerSecs<=0) { clearInterval(timerInterval); return; }
+  timerSecs--;
+  document.getElementById('timer-h').textContent = String(Math.floor(timerSecs/3600)).padStart(2,'0');
+  document.getElementById('timer-m').textContent = String(Math.floor((timerSecs%3600)/60)).padStart(2,'0');
+  document.getElementById('timer-s').textContent = String(timerSecs%60).padStart(2,'0');
+}
+
+function addAmount(n) {
+  const inp = document.getElementById('bid-input');
+  inp.value = (parseInt(inp.value)||(currentEvent?currentEvent.prices[activeTier]:0))+n;
+}
+
+function placeBid() {
+  const inp = document.getElementById('bid-input');
+  const val = parseInt(inp.value);
+  const cur = currentEvent ? currentEvent.prices[activeTier] : 0;
+  const isAmber = activeTier==='lowball';
+  if (!val||val<=cur) { inp.style.borderColor='#c94b1e'; setTimeout(()=>{inp.style.borderColor='';},800); return; }
+  currentEvent.prices[activeTier] = val;
+  updatePrices();
+  currentEvent.bids++;
+  document.getElementById('bid-meta-row').textContent = currentEvent.bids+' bids · auction live';
+  inp.value=''; inp.placeholder='$'+(val+1);
+  const f = document.getElementById('bid-flash');
+  f.textContent='Bid of $'+val+' placed';
+  f.className='bid-flash show'+(isAmber?' amber-flash':'');
+  setTimeout(()=>{f.className='bid-flash';},2400);
+  addActivityItem(val,'You',false);
+}
+
+function renderActivity() {
+  document.getElementById('activity-feed').innerHTML='';
+  for(let i=0;i<5;i++) addActivityItem(null,null,true);
+}
+
+function addActivityItem(amount,who,append) {
+  const feed = document.getElementById('activity-feed');
+  const tier = tierKeys[Math.floor(Math.random()*tierKeys.length)];
+  const base = currentEvent ? currentEvent.prices[tier] : 100;
+  const amt = amount || Math.max(1, base-Math.floor(Math.random()*30+3));
+  const name = who || names[Math.floor(Math.random()*names.length)];
+  const tagCls = tier==='lowball'?'at-low':'at-exact';
+  const tagLbl = tier==='exact'?'Exact':tier==='entry'?'Entry':'Standby';
+  const item = document.createElement('div');
+  item.className='activity-item';
+  item.innerHTML=`<div><div class="activity-bidder">${name}</div><span class="activity-tier ${tagCls}">${tagLbl}</span></div><div class="activity-amount">$${amt}</div>`;
+  if(append){feed.appendChild(item);}else{feed.insertBefore(item,feed.firstChild);}
+  const items=feed.querySelectorAll('.activity-item');
+  if(items.length>7) items[items.length-1].remove();
+}
+
+renderEvents('all');
+</script>
+</body>
+</html>
