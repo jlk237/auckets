@@ -41,7 +41,7 @@
   .nav-user { font-family:var(--font-mono); font-size:11px; color:var(--muted); cursor:pointer; }
   .nav-user:hover { color:var(--white); }
 
-  /* mobile nav -updated  */
+  /* mobile nav */
   .nav-hamburger { display:none; background:none; border:none; color:var(--white); cursor:pointer; padding:4px; }
   .nav-hamburger svg { width:22px; height:22px; }
   @media (max-width:680px) {
@@ -899,6 +899,27 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
+// ── PROFILE / ROLE ───────────────────────────────────────────────────────────
+let currentProfile = null;
+
+async function loadProfile(user) {
+  if (!user) { currentProfile = null; updateNavForRole(null); return; }
+  const { data } = await sb.from('profiles').select('*').eq('id', user.id).single();
+  currentProfile = data;
+  updateNavForRole(data?.role || 'attendee');
+}
+
+function updateNavForRole(role) {
+  const mybidsLink   = document.getElementById('nav-mybids');
+  const promoterLink = document.getElementById('nav-promoter');
+  const adminLink    = document.getElementById('nav-admin');
+  mybidsLink.style.display   = role ? '' : 'none';
+  promoterLink.style.display = (role === 'promoter' || role === 'admin') ? '' : 'none';
+  adminLink.style.display    = role === 'admin' ? '' : 'none';
+}
+
+// Profile loading is handled directly in auth state listeners below
+
 // ── STATE ────────────────────────────────────────────────────────────────────
 let currentEvent   = null;
 let activeTier     = 'exact';
@@ -1292,26 +1313,6 @@ function addActivityItem(amount, who, tier, append) {
 }
 
 
-// ── PROFILE / ROLE ───────────────────────────────────────────────────────────
-let currentProfile = null;
-
-async function loadProfile(user) {
-  if (!user) { currentProfile = null; updateNavForRole(null); return; }
-  const { data } = await sb.from('profiles').select('*').eq('id', user.id).single();
-  currentProfile = data;
-  updateNavForRole(data?.role || 'attendee');
-}
-
-function updateNavForRole(role) {
-  const mybidsLink   = document.getElementById('nav-mybids');
-  const promoterLink = document.getElementById('nav-promoter');
-  const adminLink    = document.getElementById('nav-admin');
-  mybidsLink.style.display   = role ? '' : 'none';
-  promoterLink.style.display = (role === 'promoter' || role === 'admin') ? '' : 'none';
-  adminLink.style.display    = role === 'admin' ? '' : 'none';
-}
-
-// Profile loading is handled directly in auth state listeners below
 
 // ── MY BIDS ──────────────────────────────────────────────────────────────────
 function switchMyBidsTab(tab, el) {
@@ -1685,6 +1686,8 @@ sb.auth.getSession().then(async ({ data: { session } }) => {
     userArea.innerHTML = '';
   }
   await loadProfile(user);
+  // Always pre-load events so they are ready when user navigates
+  loadAndRenderEvents('all');
 });
 </script>
 </body>
