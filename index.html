@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Auckets — Bid fair. Win real.</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -29,6 +30,7 @@
 
   body { background:var(--black); color:var(--white); font-family:var(--font-body); font-size:15px; line-height:1.6; min-height:100vh; overflow-x:hidden; }
 
+  /* ── NAV ── */
   nav { position:sticky; top:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:0 2rem; height:56px; background:rgba(8,8,8,0.94); backdrop-filter:blur(10px); border-bottom:0.5px solid var(--border); }
   .logo { font-family:var(--font-display); font-size:26px; letter-spacing:0.04em; color:var(--acid); }
   .nav-links { display:flex; gap:2rem; align-items:center; }
@@ -36,10 +38,23 @@
   .nav-links a:hover, .nav-links a.active { color:var(--white); }
   .nav-btn { background:var(--acid); color:var(--black); border:none; padding:7px 18px; font-family:var(--font-body); font-size:13px; font-weight:500; letter-spacing:0.04em; cursor:pointer; border-radius:2px; transition:opacity 0.2s; }
   .nav-btn:hover { opacity:0.85; }
+  .nav-user { font-family:var(--font-mono); font-size:11px; color:var(--muted); cursor:pointer; }
+  .nav-user:hover { color:var(--white); }
+
+  /* mobile nav */
+  .nav-hamburger { display:none; background:none; border:none; color:var(--white); cursor:pointer; padding:4px; }
+  .nav-hamburger svg { width:22px; height:22px; }
+  @media (max-width:680px) {
+    .nav-links { display:none; position:fixed; top:56px; left:0; right:0; background:rgba(8,8,8,0.98); flex-direction:column; gap:0; padding:1rem 0; border-bottom:0.5px solid var(--border); z-index:99; }
+    .nav-links.open { display:flex; }
+    .nav-links a { padding:0.75rem 2rem; width:100%; }
+    .nav-hamburger { display:block; }
+  }
 
   .page { display:none; }
   .page.active { display:block; }
 
+  /* ── HERO ── */
   .hero { min-height:88vh; display:flex; flex-direction:column; justify-content:center; padding:5rem 2rem 4rem; position:relative; overflow:hidden; }
   .hero-bg-text { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-family:var(--font-display); font-size:clamp(120px,22vw,300px); color:rgba(184,240,0,0.025); white-space:nowrap; pointer-events:none; letter-spacing:-0.02em; user-select:none; }
   .eyebrow { font-family:var(--font-mono); font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--acid); margin-bottom:1.5rem; }
@@ -52,7 +67,7 @@
   .btn-primary:hover { opacity:0.85; }
   .btn-ghost { background:transparent; color:var(--white); border:0.5px solid rgba(244,241,234,0.3); padding:14px 32px; font-family:var(--font-body); font-size:14px; letter-spacing:0.04em; cursor:pointer; border-radius:2px; transition:border-color 0.2s; }
   .btn-ghost:hover { border-color:rgba(244,241,234,0.6); }
-  .hero-stats { display:flex; gap:3rem; margin-top:5rem; padding-top:2rem; border-top:0.5px solid var(--border); }
+  .hero-stats { display:flex; gap:3rem; margin-top:5rem; padding-top:2rem; border-top:0.5px solid var(--border); flex-wrap:wrap; }
   .stat-num { font-family:var(--font-display); font-size:36px; color:var(--acid); line-height:1; margin-bottom:4px; }
   .stat-label { font-size:12px; color:var(--muted); letter-spacing:0.06em; text-transform:uppercase; }
 
@@ -87,6 +102,7 @@
   .why-title { font-size:15px; font-weight:500; margin-bottom:0.5rem; }
   .why-desc { font-size:13px; color:var(--muted); line-height:1.65; }
 
+  /* ── EVENTS ── */
   .events-header { padding:3rem 2rem 2rem; }
   .events-filter { display:flex; gap:0.5rem; margin-top:1.5rem; flex-wrap:wrap; }
   .filter-btn { background:transparent; color:var(--muted); border:0.5px solid var(--border); padding:7px 18px; font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; border-radius:2px; transition:all 0.15s; }
@@ -106,7 +122,9 @@
   .bid-amount { font-family:var(--font-display); font-size:26px; color:var(--acid); }
   .bid-count { font-family:var(--font-mono); font-size:10px; color:var(--muted); text-align:right; }
   .event-timer { font-family:var(--font-mono); font-size:11px; color:var(--amber); letter-spacing:0.06em; }
+  .events-loading { padding:3rem 2rem; color:var(--muted); font-family:var(--font-mono); font-size:12px; }
 
+  /* ── BID PAGE ── */
   .bid-layout { display:grid; grid-template-columns:1fr 380px; min-height:calc(100vh - 56px); }
   .bid-main { padding:3rem 2rem; border-right:0.5px solid var(--border); }
   .bid-sidebar { padding:2rem 1.5rem; background:var(--surface); }
@@ -174,6 +192,7 @@
   .place-bid-btn { background:var(--acid); color:var(--black); border:none; padding:0 20px; font-family:var(--font-body); font-size:13px; font-weight:500; letter-spacing:0.04em; cursor:pointer; border-radius:2px; transition:opacity 0.2s; white-space:nowrap; }
   .place-bid-btn:hover { opacity:0.85; }
   .place-bid-btn.amber-btn { background:var(--amber); }
+  .place-bid-btn:disabled { opacity:0.4; cursor:not-allowed; }
   .bid-increment-row { display:flex; gap:6px; margin-top:8px; }
   .increment-btn { background:transparent; border:0.5px solid var(--border); color:var(--muted); padding:5px 10px; font-family:var(--font-mono); font-size:11px; cursor:pointer; border-radius:2px; transition:all 0.15s; }
   .increment-btn:hover { color:var(--white); border-color:var(--border-md); }
@@ -202,6 +221,29 @@
   .bid-flash { position:fixed; bottom:2rem; right:2rem; background:var(--acid); color:var(--black); padding:12px 20px; border-radius:2px; font-family:var(--font-mono); font-size:12px; letter-spacing:0.06em; opacity:0; pointer-events:none; transition:opacity 0.25s; z-index:200; }
   .bid-flash.show { opacity:1; }
   .bid-flash.amber-flash { background:var(--amber); }
+  .bid-flash.error-flash { background:var(--rust); color:var(--white); }
+
+  /* ── AUTH MODAL ── */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:300; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+  .modal-overlay.open { opacity:1; pointer-events:all; }
+  .modal { background:var(--surface); border:0.5px solid var(--border-md); border-radius:4px; padding:2.5rem; width:100%; max-width:420px; margin:1rem; }
+  .modal-title { font-family:var(--font-display); font-size:32px; letter-spacing:0.02em; margin-bottom:0.5rem; }
+  .modal-sub { font-size:13px; color:var(--muted); margin-bottom:2rem; line-height:1.6; }
+  .modal-tabs { display:flex; gap:0; border-bottom:0.5px solid var(--border); margin-bottom:1.75rem; }
+  .modal-tab { background:none; border:none; color:var(--muted); padding:0.5rem 1.25rem 0.75rem; font-family:var(--font-body); font-size:13px; cursor:pointer; border-bottom:2px solid transparent; transition:all 0.15s; }
+  .modal-tab.active { color:var(--white); border-bottom-color:var(--acid); }
+  .form-group { margin-bottom:1rem; }
+  .form-label { font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); display:block; margin-bottom:6px; }
+  .form-input { width:100%; background:#0c0c0c; border:0.5px solid var(--border); color:var(--white); padding:10px 14px; font-family:var(--font-body); font-size:14px; border-radius:2px; outline:none; transition:border-color 0.15s; }
+  .form-input:focus { border-color:var(--acid); }
+  .form-submit { width:100%; background:var(--acid); color:var(--black); border:none; padding:12px; font-family:var(--font-body); font-size:14px; font-weight:500; cursor:pointer; border-radius:2px; margin-top:0.5rem; transition:opacity 0.2s; }
+  .form-submit:hover { opacity:0.85; }
+  .form-submit:disabled { opacity:0.5; cursor:not-allowed; }
+  .form-msg { font-family:var(--font-mono); font-size:11px; margin-top:0.75rem; min-height:18px; }
+  .form-msg.ok { color:var(--acid); }
+  .form-msg.err { color:var(--rust); }
+  .modal-close { position:absolute; top:1rem; right:1rem; background:none; border:none; color:var(--muted); cursor:pointer; font-size:20px; line-height:1; }
+  .modal-close:hover { color:var(--white); }
 
   @media (max-width:900px) {
     .bid-layout { grid-template-columns:1fr; }
@@ -209,84 +251,169 @@
     .tiers-grid { grid-template-columns:1fr; }
     .why-grid { grid-template-columns:1fr; }
   }
+
+  /* ── DASHBOARD SHARED ── */
+  .dash-layout { display:grid; grid-template-columns:220px 1fr; min-height:calc(100vh - 56px); }
+  .dash-nav { background:var(--surface); border-right:0.5px solid var(--border); padding:1.5rem 0; }
+  .dash-nav-title { font-family:var(--font-mono); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); padding:0 1.25rem; margin-bottom:0.75rem; }
+  .dash-nav-item { display:flex; align-items:center; gap:10px; padding:0.6rem 1.25rem; cursor:pointer; font-size:13px; color:var(--muted); transition:all 0.15s; border-left:2px solid transparent; }
+  .dash-nav-item:hover { color:var(--white); background:var(--surface2); }
+  .dash-nav-item.active { color:var(--white); border-left-color:var(--acid); background:rgba(184,240,0,0.04); }
+  .dash-nav-item svg { width:14px; height:14px; flex-shrink:0; }
+  .dash-body { padding:2.5rem; overflow-y:auto; }
+  .dash-header { margin-bottom:2rem; }
+  .dash-title { font-family:var(--font-display); font-size:42px; letter-spacing:0.02em; line-height:1; margin-bottom:0.25rem; }
+  .dash-sub { font-size:13px; color:var(--muted); }
+  .dash-section { margin-bottom:2.5rem; }
+  .dash-section-title { font-family:var(--font-mono); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem; padding-bottom:0.5rem; border-bottom:0.5px solid var(--border); }
+  .dash-tab { display:none; }
+  .dash-tab.active { display:block; }
+  .stat-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:1px; background:var(--border); border:0.5px solid var(--border); border-radius:4px; overflow:hidden; margin-bottom:2rem; }
+  .stat-box { background:var(--surface); padding:1.25rem 1.5rem; }
+  .stat-box-val { font-family:var(--font-display); font-size:32px; color:var(--acid); line-height:1; margin-bottom:4px; }
+  .stat-box-lbl { font-family:var(--font-mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
+  .dash-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .dash-table th { text-align:left; font-family:var(--font-mono); font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); padding:0.5rem 0.75rem; border-bottom:0.5px solid var(--border); }
+  .dash-table td { padding:0.75rem; border-bottom:0.5px solid var(--border); vertical-align:middle; }
+  .dash-table tr:last-child td { border-bottom:none; }
+  .dash-table tr:hover td { background:var(--surface2); }
+  .dash-empty { text-align:center; padding:3rem; color:var(--muted); font-family:var(--font-mono); font-size:12px; }
+  .dash-form { max-width:560px; }
+  .dash-form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+  .dash-form-row.full { grid-template-columns:1fr; }
+  .dash-field { display:flex; flex-direction:column; gap:5px; }
+  .dash-label { font-family:var(--font-mono); font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); }
+  .dash-input { background:#0c0c0c; border:0.5px solid var(--border); color:var(--white); padding:9px 12px; font-family:var(--font-body); font-size:13px; border-radius:2px; outline:none; transition:border-color 0.15s; width:100%; }
+  .dash-input:focus { border-color:var(--acid); }
+  .dash-select { background:#0c0c0c; border:0.5px solid var(--border); color:var(--white); padding:9px 12px; font-family:var(--font-body); font-size:13px; border-radius:2px; outline:none; width:100%; cursor:pointer; }
+  .dash-btn { background:var(--acid); color:var(--black); border:none; padding:9px 20px; font-family:var(--font-body); font-size:13px; font-weight:500; cursor:pointer; border-radius:2px; transition:opacity 0.2s; }
+  .dash-btn:hover { opacity:0.85; }
+  .dash-btn:disabled { opacity:0.4; cursor:not-allowed; }
+  .dash-btn-ghost { background:transparent; color:var(--muted); border:0.5px solid var(--border); padding:9px 20px; font-family:var(--font-body); font-size:13px; cursor:pointer; border-radius:2px; transition:all 0.15s; }
+  .dash-btn-ghost:hover { color:var(--white); border-color:var(--border-md); }
+  .dash-btn-danger { background:rgba(201,75,30,0.12); color:var(--rust); border:0.5px solid rgba(201,75,30,0.3); padding:6px 14px; font-family:var(--font-body); font-size:12px; cursor:pointer; border-radius:2px; }
+  .dash-msg { font-family:var(--font-mono); font-size:11px; margin-top:0.75rem; min-height:16px; }
+  .dash-msg.ok { color:var(--acid); }
+  .dash-msg.err { color:var(--rust); }
+  .role-badge { display:inline-block; font-family:var(--font-mono); font-size:9px; letter-spacing:0.08em; text-transform:uppercase; padding:2px 8px; border-radius:2px; }
+  .role-attendee { background:var(--acid-dim); color:var(--acid); }
+  .role-promoter { background:var(--amber-dim); color:var(--amber); }
+  .role-admin { background:rgba(201,75,30,0.12); color:var(--rust); }
+  .status-badge { display:inline-block; font-family:var(--font-mono); font-size:9px; padding:2px 8px; border-radius:2px; text-transform:uppercase; letter-spacing:0.06em; }
+  .status-live { background:rgba(184,240,0,0.12); color:var(--acid); }
+  .status-draft { background:rgba(244,241,234,0.06); color:var(--muted); }
+  .section-list { display:flex; flex-direction:column; gap:6px; margin-bottom:1rem; }
+  .section-row { display:flex; align-items:center; gap:8px; padding:0.6rem 0.75rem; background:var(--surface2); border:0.5px solid var(--border); border-radius:3px; }
+  .section-row-name { font-size:13px; flex:1; }
+  .section-row-detail { font-family:var(--font-mono); font-size:10px; color:var(--muted); }
+  .my-bid-card { padding:1.25rem 1.5rem; border:0.5px solid var(--border); border-radius:4px; background:var(--surface); margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+  .my-bid-event { font-family:var(--font-display); font-size:20px; letter-spacing:0.02em; line-height:1.1; margin-bottom:2px; }
+  .my-bid-meta { font-family:var(--font-mono); font-size:10px; color:var(--muted); letter-spacing:0.04em; }
+  .my-bid-amount { font-family:var(--font-display); font-size:28px; color:var(--acid); text-align:right; }
+  .my-bid-tier { font-family:var(--font-mono); font-size:9px; color:var(--muted); text-align:right; text-transform:uppercase; letter-spacing:0.06em; }
+  @media (max-width:768px) {
+    .dash-layout { grid-template-columns:1fr; }
+    .dash-nav { border-right:none; border-bottom:0.5px solid var(--border); padding:0.75rem 0; display:flex; overflow-x:auto; }
+    .dash-nav-title { display:none; }
+    .dash-nav-item { white-space:nowrap; border-left:none; border-bottom:2px solid transparent; padding:0.5rem 1rem; }
+    .dash-nav-item.active { border-bottom-color:var(--acid); border-left:none; }
+  }
+
 </style>
 </head>
 <body>
 
 <nav>
   <div class="logo">AUCKETS</div>
-  <div class="nav-links">
-    <a onclick="showPage('home')" id="nav-home" class="active">Home</a>
-    <a onclick="showPage('events')" id="nav-events">Events</a>
-    <a onclick="showPage('how')" id="nav-how">How it works</a>
-    <button class="nav-btn">Sign up</button>
+  <div class="nav-links" id="nav-links">
+    <a onclick="showPage('home');closeNav()" id="nav-home" class="active">Home</a>
+    <a onclick="showPage('events');closeNav()" id="nav-events">Events</a>
+    <a onclick="showPage('how');closeNav()" id="nav-how">How it works</a>
+    <a onclick="showPage('mybids');closeNav();loadMyBids()" id="nav-mybids" style="display:none">My Bids</a>
+    <a onclick="showPage('promoter');closeNav();loadPromoterDash()" id="nav-promoter" style="display:none">Dashboard</a>
+    <a onclick="showPage('admin');closeNav();loadAdminDash()" id="nav-admin" style="display:none">Admin</a>
+    <span id="nav-user-area"></span>
+    <button class="nav-btn" id="nav-auth-btn" onclick="openModal()">Sign up</button>
   </div>
+  <button class="nav-hamburger" onclick="toggleNav()" aria-label="Menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
 </nav>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="auth-modal">
+  <div class="modal" style="position:relative">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-title">AUCKETS</div>
+    <div class="modal-sub">Bid fair. Win real. No bots, no scalpers.</div>
+    <div class="modal-tabs">
+      <button class="modal-tab active" onclick="switchAuthTab('signup',this)">Sign up</button>
+      <button class="modal-tab" onclick="switchAuthTab('login',this)">Log in</button>
+    </div>
+    <div id="auth-form-signup">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" type="email" id="signup-email" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" id="signup-pass" placeholder="Min 6 characters">
+      </div>
+      <button class="form-submit" id="signup-btn" onclick="doSignup()">Create account</button>
+      <div class="form-msg" id="signup-msg"></div>
+    </div>
+    <div id="auth-form-login" style="display:none">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" type="email" id="login-email" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" id="login-pass" placeholder="Your password">
+      </div>
+      <button class="form-submit" id="login-btn" onclick="doLogin()">Log in</button>
+      <div class="form-msg" id="login-msg"></div>
+    </div>
+  </div>
+</div>
 
 <!-- HOME -->
 <div id="page-home" class="page active">
   <section class="hero">
     <div class="hero-bg-text">AUCKETS</div>
-    <p class="eyebrow"><span></span>The ticket market, reimagined</p>
+    <div class="eyebrow"><span></span>Live ticket auctions</div>
     <h1 class="hero-title">Bid fair.<br><em>Win real.</em></h1>
-    <p class="hero-sub">Auction-based ticketing that puts money back in artists' pockets — and gives every fan a shot at getting in.</p>
+    <p class="hero-sub">No bots. No scalpers. Three bidding tiers so everyone — from die-hards to last-minute locals — has a shot at getting in.</p>
     <div class="hero-ctas">
-      <button class="btn-primary" onclick="showPage('events')">Browse events</button>
+      <button class="btn-primary" onclick="showPage('events')">See live auctions</button>
       <button class="btn-ghost" onclick="showPage('how')">How it works</button>
     </div>
     <div class="hero-stats">
-      <div><div class="stat-num">0%</div><div class="stat-label">Hidden fees</div></div>
-      <div><div class="stat-num">100%</div><div class="stat-label">Artist-backed</div></div>
-      <div><div class="stat-num">3</div><div class="stat-label">Ways to get in</div></div>
+      <div><div class="stat-num">3</div><div class="stat-label">Bid tiers</div></div>
+      <div><div class="stat-num">0%</div><div class="stat-label">Bot tolerance</div></div>
+      <div><div class="stat-num">100%</div><div class="stat-label">Refund if outbid</div></div>
     </div>
   </section>
 
   <section class="section">
-    <p class="section-label">The problem</p>
-    <div class="section-title">Scalpers win.<br><em>You lose.</em><br>Artists get nothing.</div>
-    <div class="why-grid">
-      <div class="why-item">
-        <div class="why-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
-        <div class="why-title">Artists deserve the upside</div>
-        <div class="why-desc">When a ticket resells for 5× face value, that money goes to a bot operator. Auctions let the real market price flow back to the people who made the show worth attending.</div>
-      </div>
-      <div class="why-item">
-        <div class="why-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
-        <div class="why-title">No more lottery anxiety</div>
-        <div class="why-desc">Our tier system means you always know what you're bidding for. Guaranteed entry? Lowball and see? You choose your risk level — and your price range.</div>
-      </div>
-      <div class="why-item">
-        <div class="why-icon"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
-        <div class="why-title">Resale stays on platform</div>
-        <div class="why-desc">Can't make it? Resell through Auckets. Price caps keep things honest. A cut goes back to the artist. The ecosystem stays clean.</div>
-      </div>
-      <div class="why-item">
-        <div class="why-icon"><svg viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg></div>
-        <div class="why-title">Built with artists</div>
-        <div class="why-desc">We didn't build this and pitch it to artists. Artists helped design it. That's why it actually works for the people on stage, not just the people behind screens.</div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
-    <p class="section-label">Tiers</p>
-    <div class="section-title">Three ways<br>to <em>get in.</em></div>
+    <p class="section-label">How it works</p>
+    <div class="section-title">Three tiers.<br><em>One shot.</em></div>
     <div class="tiers-grid">
-      <div class="tier-card">
-        <div class="tier-num">1</div>
-        <div class="tier-badge badge-exact">Exact seat</div>
-        <div class="tier-name">LOCK IT IN</div>
-        <div class="tier-price-range price-green">$200 – $600+ · market price</div>
-        <div class="tier-desc">Bid on a specific seat. Highest bidder takes it. You know exactly where you'll be sitting before you commit.</div>
-        <div class="tier-detail">Winner-take-all. Outbid? Funds returned instantly.</div>
-      </div>
       <div class="tier-card featured">
+        <div class="tier-num">1</div>
+        <div class="tier-badge badge-exact">Most popular</div>
+        <div class="tier-name">LOCK IT IN</div>
+        <div class="tier-price-range price-green">$200 – $600+ · exact seat</div>
+        <div class="tier-desc">Bid on a specific seat. The highest bidder wins. Transparent, fair, no hidden secondary market.</div>
+        <div class="tier-detail">Outbid? Full refund instantly. No holds.</div>
+      </div>
+      <div class="tier-card">
         <div class="tier-num">2</div>
-        <div class="tier-badge badge-entry">Most popular</div>
+        <div class="tier-badge badge-entry">Entry pool</div>
         <div class="tier-name">GET IN</div>
-        <div class="tier-price-range price-green">$80 – $350 · entry pool</div>
-        <div class="tier-desc">Bid for access, not location. You're guaranteed a seat — someone may outbid you on section, but you still get in.</div>
-        <div class="tier-detail">Lose your seat preference, not your spot.</div>
+        <div class="tier-price-range price-green">$80 – $350 · guaranteed entry</div>
+        <div class="tier-desc">Bid for access, not location. Your entry is guaranteed — section fills from highest bids down.</div>
+        <div class="tier-detail">You're in no matter what. Seat assigned at door.</div>
       </div>
       <div class="tier-card lowball-card">
         <div class="tier-num">3</div>
@@ -315,7 +442,9 @@
       <button class="filter-btn" onclick="filterEvents(this,'hot')">Ending soon</button>
     </div>
   </div>
-  <div class="events-grid" id="events-grid"></div>
+  <div class="events-grid" id="events-grid">
+    <div class="events-loading">Loading events…</div>
+  </div>
 </div>
 
 <!-- BIDDING -->
@@ -383,7 +512,7 @@
             <div class="seat-block" onclick="selectSeat(this,'Upper 304')" data-section="Upper 304"><span class="seat-block-name">304</span><span class="seat-block-detail">Upper deck</span></div>
           </div>
         </div>
-        <div class="seat-avail" id="seat-avail">Floor GA selected · 12 bids active</div>
+        <div class="seat-avail" id="seat-avail">Floor GA selected</div>
       </div>
     </div>
 
@@ -424,9 +553,9 @@
       <div class="sidebar-section">
         <div class="sidebar-label">Auction closes in</div>
         <div class="timer-display">
-          <div class="timer-unit"><span class="timer-num" id="timer-h">02</span><span class="timer-unit-label">hrs</span></div>
-          <div class="timer-unit"><span class="timer-num" id="timer-m">14</span><span class="timer-unit-label">min</span></div>
-          <div class="timer-unit"><span class="timer-num" id="timer-s">33</span><span class="timer-unit-label">sec</span></div>
+          <div class="timer-unit"><span class="timer-num" id="timer-h">00</span><span class="timer-unit-label">hrs</span></div>
+          <div class="timer-unit"><span class="timer-num" id="timer-m">00</span><span class="timer-unit-label">min</span></div>
+          <div class="timer-unit"><span class="timer-num" id="timer-s">00</span><span class="timer-unit-label">sec</span></div>
         </div>
       </div>
 
@@ -439,7 +568,7 @@
         <div class="buy-now-label">Skip the auction</div>
         <div class="buy-now-price" id="buy-now-price">—</div>
         <div class="buy-now-desc">Guaranteed floor access. No waiting, no bidding. Premium price, zero uncertainty.</div>
-        <button class="buy-now-btn">Buy now — guaranteed</button>
+        <button class="buy-now-btn" onclick="showFlash('Buy Now coming soon — payments not live yet','error-flash')">Buy now — guaranteed</button>
       </div>
     </div>
   </div>
@@ -464,7 +593,7 @@
         <div>
           <div style="font-family:var(--font-display);font-size:24px;margin-bottom:0.25rem;">GET IN — Guaranteed entry</div>
           <div style="font-family:var(--font-mono);font-size:11px;color:var(--acid);margin-bottom:0.75rem;">$80 – $350 · entry pool</div>
-          <div style="color:var(--muted);font-size:14px;line-height:1.7;">You're bidding for access, not a specific seat. If someone outbids you on section, you still get in — just a different spot. Your entry is guaranteed. This is the most popular tier.</div>
+          <div style="color:var(--muted);font-size:14px;line-height:1.7;">You're bidding for access, not a specific seat. If someone outbids you on section, you still get in — just a different spot. Your entry is guaranteed.</div>
         </div>
       </div>
       <div style="margin-bottom:2.5rem;padding-bottom:2.5rem;border-bottom:0.5px solid var(--border);display:flex;gap:1.5rem;align-items:flex-start;">
@@ -472,7 +601,7 @@
         <div>
           <div style="font-family:var(--font-display);font-size:24px;margin-bottom:0.25rem;">SHOOT YOUR SHOT — Lowball standby</div>
           <div style="font-family:var(--font-mono);font-size:11px;color:var(--amber);margin-bottom:0.75rem;">$15 – $80 · standby bid</div>
-          <div style="color:var(--muted);font-size:14px;line-height:1.7;">Put in a low bid and find out 72 hours before the show. If seats remain and your bid clears the threshold, you're in. Otherwise, full refund. Great for locals and students.</div>
+          <div style="color:var(--muted);font-size:14px;line-height:1.7;">Put in a low bid and find out 72 hours before the show. If seats remain and your bid clears the threshold, you're in. Otherwise, full refund.</div>
         </div>
       </div>
       <div style="display:flex;gap:1.5rem;align-items:flex-start;">
@@ -488,31 +617,313 @@
   </div>
 </div>
 
+
+<!-- MY BIDS PAGE -->
+<div id="page-mybids" class="page">
+  <div class="dash-layout">
+    <div class="dash-nav">
+      <div class="dash-nav-title">My Account</div>
+      <div class="dash-nav-item active" onclick="switchMyBidsTab('bids',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        My Bids
+      </div>
+      <div class="dash-nav-item" onclick="switchMyBidsTab('account',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        Account
+      </div>
+    </div>
+    <div class="dash-body">
+      <div class="dash-tab active" id="mybids-tab-bids">
+        <div class="dash-header">
+          <div class="dash-title">MY BIDS</div>
+          <div class="dash-sub">All your active and past bids</div>
+        </div>
+        <div class="stat-row" id="mybids-stats">
+          <div class="stat-box"><div class="stat-box-val" id="stat-total-bids">—</div><div class="stat-box-lbl">Total bids</div></div>
+          <div class="stat-box"><div class="stat-box-val" id="stat-active-bids">—</div><div class="stat-box-lbl">Active auctions</div></div>
+          <div class="stat-box"><div class="stat-box-val" id="stat-top-bid">—</div><div class="stat-box-lbl">Highest bid</div></div>
+        </div>
+        <div id="mybids-list"><div class="dash-empty">Loading your bids…</div></div>
+      </div>
+      <div class="dash-tab" id="mybids-tab-account">
+        <div class="dash-header">
+          <div class="dash-title">ACCOUNT</div>
+          <div class="dash-sub" id="mybids-account-email"></div>
+        </div>
+        <div class="dash-section">
+          <div class="dash-section-title">Your role</div>
+          <div id="mybids-role-display" style="margin-bottom:1rem;"></div>
+        </div>
+        <div class="dash-section">
+          <div class="dash-section-title">Actions</div>
+          <button class="dash-btn-ghost" onclick="doSignout()">Sign out</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROMOTER DASHBOARD -->
+<div id="page-promoter" class="page">
+  <div class="dash-layout">
+    <div class="dash-nav">
+      <div class="dash-nav-title">Promoter</div>
+      <div class="dash-nav-item active" onclick="switchPromoterTab('events',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        My Events
+      </div>
+      <div class="dash-nav-item" onclick="switchPromoterTab('create',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+        Create Event
+      </div>
+      <div class="dash-nav-item" onclick="switchPromoterTab('bids',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M13 2v7h7"/></svg>
+        Bid Reports
+      </div>
+    </div>
+    <div class="dash-body">
+
+      <!-- My Events tab -->
+      <div class="dash-tab active" id="promoter-tab-events">
+        <div class="dash-header">
+          <div class="dash-title">MY EVENTS</div>
+          <div class="dash-sub">Manage your listings</div>
+        </div>
+        <div id="promoter-events-list"><div class="dash-empty">Loading…</div></div>
+      </div>
+
+      <!-- Create Event tab -->
+      <div class="dash-tab" id="promoter-tab-create">
+        <div class="dash-header">
+          <div class="dash-title">CREATE EVENT</div>
+          <div class="dash-sub">List a new auction</div>
+        </div>
+        <div class="dash-form">
+          <div class="dash-form-row">
+            <div class="dash-field">
+              <label class="dash-label">Artist / Event name</label>
+              <input class="dash-input" id="ce-artist" placeholder="e.g. Taylor Swift">
+            </div>
+            <div class="dash-field">
+              <label class="dash-label">Type</label>
+              <select class="dash-select" id="ce-type">
+                <option value="music">Music</option>
+                <option value="sports">Sports</option>
+              </select>
+            </div>
+          </div>
+          <div class="dash-form-row">
+            <div class="dash-field">
+              <label class="dash-label">Venue</label>
+              <input class="dash-input" id="ce-venue" placeholder="e.g. Madison Square Garden">
+            </div>
+            <div class="dash-field">
+              <label class="dash-label">City</label>
+              <input class="dash-input" id="ce-city" placeholder="e.g. New York, NY">
+            </div>
+          </div>
+          <div class="dash-form-row">
+            <div class="dash-field">
+              <label class="dash-label">Event date</label>
+              <input class="dash-input" id="ce-date" placeholder="e.g. Jun 14, 2025">
+            </div>
+            <div class="dash-field">
+              <label class="dash-label">Auction closes at</label>
+              <input class="dash-input" id="ce-closes" type="datetime-local">
+            </div>
+          </div>
+          <div class="dash-form-row">
+            <div class="dash-field">
+              <label class="dash-label">Buy now price ($)</label>
+              <input class="dash-input" id="ce-buynow" type="number" placeholder="e.g. 500">
+            </div>
+            <div class="dash-field" style="justify-content:flex-end;">
+              <label class="dash-label">Publish immediately</label>
+              <label style="display:flex;align-items:center;gap:8px;margin-top:6px;cursor:pointer;font-size:13px;color:var(--muted)">
+                <input type="checkbox" id="ce-publish" style="accent-color:var(--acid);width:16px;height:16px;">
+                Make live on save
+              </label>
+            </div>
+          </div>
+
+          <!-- Sections builder -->
+          <div class="dash-section-title" style="margin-top:1.5rem;">Venue Sections</div>
+          <div class="section-list" id="ce-sections-list"></div>
+          <div style="display:flex;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap;">
+            <input class="dash-input" id="ce-sec-name" placeholder="Section name" style="flex:1;min-width:120px;">
+            <input class="dash-input" id="ce-sec-detail" placeholder="Detail (e.g. Rows 1–8)" style="flex:1;min-width:120px;">
+            <input class="dash-input" id="ce-sec-cap" type="number" placeholder="Capacity" style="width:100px;">
+            <button class="dash-btn-ghost" onclick="addSection()">+ Add</button>
+          </div>
+
+          <div style="display:flex;gap:10px;">
+            <button class="dash-btn" id="ce-submit-btn" onclick="submitNewEvent()">Save Event</button>
+            <button class="dash-btn-ghost" onclick="switchPromoterTab('events',document.querySelector('.dash-nav-item'))">Cancel</button>
+          </div>
+          <div class="dash-msg" id="ce-msg"></div>
+        </div>
+      </div>
+
+      <!-- Bid Reports tab -->
+      <div class="dash-tab" id="promoter-tab-bids">
+        <div class="dash-header">
+          <div class="dash-title">BID REPORTS</div>
+          <div class="dash-sub">All bids across your events</div>
+        </div>
+        <div style="margin-bottom:1rem;">
+          <select class="dash-select" id="promoter-bid-event-filter" onchange="loadPromoterBids()" style="max-width:300px;">
+            <option value="all">All events</option>
+          </select>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="dash-table">
+            <thead><tr><th>Event</th><th>Tier</th><th>Section</th><th>Amount</th><th>Time</th></tr></thead>
+            <tbody id="promoter-bids-body"><tr><td colspan="5" class="dash-empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN DASHBOARD -->
+<div id="page-admin" class="page">
+  <div class="dash-layout">
+    <div class="dash-nav">
+      <div class="dash-nav-title">Admin</div>
+      <div class="dash-nav-item active" onclick="switchAdminTab('overview',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Overview
+      </div>
+      <div class="dash-nav-item" onclick="switchAdminTab('events',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        All Events
+      </div>
+      <div class="dash-nav-item" onclick="switchAdminTab('users',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        Users
+      </div>
+      <div class="dash-nav-item" onclick="switchAdminTab('invites',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.22 1.18 2 2 0 012.18 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.09a16 16 0 006 6l1.06-1.06a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.29v2.63z"/></svg>
+        Invite Promoters
+      </div>
+    </div>
+    <div class="dash-body">
+
+      <!-- Overview -->
+      <div class="dash-tab active" id="admin-tab-overview">
+        <div class="dash-header">
+          <div class="dash-title">OVERVIEW</div>
+          <div class="dash-sub">Platform at a glance</div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-box"><div class="stat-box-val" id="admin-stat-events">—</div><div class="stat-box-lbl">Live events</div></div>
+          <div class="stat-box"><div class="stat-box-val" id="admin-stat-bids">—</div><div class="stat-box-lbl">Total bids</div></div>
+          <div class="stat-box"><div class="stat-box-val" id="admin-stat-users">—</div><div class="stat-box-lbl">Users</div></div>
+          <div class="stat-box"><div class="stat-box-val" id="admin-stat-promoters">—</div><div class="stat-box-lbl">Promoters</div></div>
+        </div>
+      </div>
+
+      <!-- All Events -->
+      <div class="dash-tab" id="admin-tab-events">
+        <div class="dash-header">
+          <div class="dash-title">ALL EVENTS</div>
+          <div class="dash-sub">Every event on the platform</div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="dash-table">
+            <thead><tr><th>Event</th><th>Promoter</th><th>Status</th><th>Closes</th><th>Bids</th><th></th><th></th></tr></thead>
+            <tbody id="admin-events-body"><tr><td colspan="7" class="dash-empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Users -->
+      <div class="dash-tab" id="admin-tab-users">
+        <div class="dash-header">
+          <div class="dash-title">USERS</div>
+          <div class="dash-sub">All registered accounts</div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="dash-table">
+            <thead><tr><th>Email</th><th>Role</th><th>Joined</th><th></th></tr></thead>
+            <tbody id="admin-users-body"><tr><td colspan="4" class="dash-empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Invite Promoters -->
+      <div class="dash-tab" id="admin-tab-invites">
+        <div class="dash-header">
+          <div class="dash-title">INVITE PROMOTERS</div>
+          <div class="dash-sub">Send an invite to a venue or promoter</div>
+        </div>
+        <div class="dash-form" style="margin-bottom:2rem;">
+          <div class="dash-form-row">
+            <div class="dash-field">
+              <label class="dash-label">Email address</label>
+              <input class="dash-input" id="invite-email" placeholder="promoter@venue.com">
+            </div>
+            <div class="dash-field">
+              <label class="dash-label">Role</label>
+              <select class="dash-select" id="invite-role">
+                <option value="promoter">Promoter</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          </div>
+          <button class="dash-btn" id="invite-btn" onclick="sendInvite()">Send Invite</button>
+          <div class="dash-msg" id="invite-msg"></div>
+        </div>
+        <div class="dash-section-title">Pending Invites</div>
+        <table class="dash-table">
+          <thead><tr><th>Email</th><th>Role</th><th>Status</th><th>Sent</th></tr></thead>
+          <tbody id="admin-invites-body"><tr><td colspan="4" class="dash-empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <div class="bid-flash" id="bid-flash">Bid placed</div>
 
 <script>
-const eventsData = [
-  { id:0, artist:'Kendrick Lamar', type:'music', venue:'SoFi Stadium', city:'Los Angeles, CA', date:'Apr 18, 2025', bids:214, buyNow:650, timer:'1h 22m', hot:true, prices:{exact:347,entry:198,lowball:54} },
-  { id:1, artist:'Chappell Roan', type:'music', venue:'Madison Square Garden', city:'New York, NY', date:'Apr 26, 2025', bids:98, buyNow:420, timer:'3h 44m', hot:false, prices:{exact:189,entry:112,lowball:34} },
-  { id:2, artist:'Lakers vs Celtics', type:'sports', venue:'Crypto.com Arena', city:'Los Angeles, CA', date:'Apr 21, 2025', bids:301, buyNow:900, timer:'0h 47m', hot:true, prices:{exact:520,entry:290,lowball:72} },
-  { id:3, artist:'Sabrina Carpenter', type:'music', venue:'United Center', city:'Chicago, IL', date:'May 3, 2025', bids:167, buyNow:480, timer:'5h 12m', hot:false, prices:{exact:210,entry:125,lowball:40} },
-  { id:4, artist:'Warriors vs Knicks', type:'sports', venue:'Chase Center', city:'San Francisco, CA', date:'Apr 19, 2025', bids:188, buyNow:750, timer:'2h 05m', hot:true, prices:{exact:390,entry:225,lowball:65} },
-  { id:5, artist:'Mitski', type:'music', venue:'Red Rocks Amphitheatre', city:'Morrison, CO', date:'May 10, 2025', bids:77, buyNow:310, timer:'6h 33m', hot:false, prices:{exact:145,entry:84,lowball:26} },
-];
+'use strict';
 
-let currentEvent = null;
-let activeTier = 'exact';
-let timerSecs = 0;
-let timerInterval = null;
-let activityInterval = null;
-const names = ['A****n','j****e','M****a','T****s','K****l','B****r','s****y','R****z'];
-const tierKeys = ['exact','entry','entry','lowball','exact','entry','lowball'];
+// ── SUPABASE CONFIG ──────────────────────────────────────────────────────────
+// Replace these two values with your own from Supabase → Settings → API
+const SUPABASE_URL  = 'https://yofnjuyoxmtrgfdpagvn.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvZm5qdXlveG10cmdmZHBhZ3ZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MTM0MDQsImV4cCI6MjA5MDI4OTQwNH0.NnJ3tE0xQ2FiOvE8BO8OGDvOv7uZafkye-nOBGkN87k';
 
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let currentEvent   = null;
+let activeTier     = 'exact';
+let timerSecs      = 0;
+let timerInterval  = null;
+let realtimeChan   = null;
+let currentUser    = null;
+let eventsCache    = [];
+let currentPrices  = { exact:0, entry:0, lowball:0 };
+let currentBidCount = 0;
+
+// ── TIER META ────────────────────────────────────────────────────────────────
 const tierMeta = {
-  exact: { title:'Exact seat auction', desc:"You're bidding on a specific seat. Highest bid wins — winner-take-all. You know exactly where you'll be before you commit.", detail:'→ Outbid? Your money comes back instantly. No holds, no delays.', detailCls:'detail-green', panelCls:'panel-green' },
-  entry: { title:'Guaranteed entry', desc:"Bid for access, not location. You're guaranteed a seat — someone may outbid you on section preference, but you always get in.", detail:'→ Entry pool fills from highest bids down. Your spot is secure.', detailCls:'detail-green', panelCls:'panel-green' },
-  lowball: { title:'Lowball standby', desc:"Put in a low bid and find out 72 hours before doors. If seats remain and your bid clears, you're in. Otherwise, full refund — no limbo.", detail:'→ Confirmation or refund 72 hrs before showtime.', detailCls:'detail-amber', panelCls:'panel-amber' }
+  exact:   { title:'Exact seat auction',  desc:"You're bidding on a specific seat. Highest bid wins — winner-take-all. You know exactly where you'll be before you commit.", detail:'→ Outbid? Your money comes back instantly. No holds, no delays.', detailCls:'detail-green', panelCls:'panel-green' },
+  entry:   { title:'Guaranteed entry',    desc:"Bid for access, not location. You're guaranteed a seat — someone may outbid you on section preference, but you always get in.", detail:'→ Entry pool fills from highest bids down. Your spot is secure.', detailCls:'detail-green', panelCls:'panel-green' },
+  lowball: { title:'Lowball standby',     desc:"Put in a low bid and find out 72 hours before doors. If seats remain and your bid clears, you're in. Otherwise, full refund — no limbo.", detail:'→ Confirmation or refund 72 hrs before showtime.', detailCls:'detail-amber', panelCls:'panel-amber' }
 };
+
+// ── NAV ──────────────────────────────────────────────────────────────────────
+function toggleNav() {
+  document.getElementById('nav-links').classList.toggle('open');
+}
+function closeNav() {
+  document.getElementById('nav-links').classList.remove('open');
+}
 
 function showPage(p) {
   document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
@@ -520,86 +931,317 @@ function showPage(p) {
   document.getElementById('page-'+p).classList.add('active');
   const n = document.getElementById('nav-'+p);
   if (n) n.classList.add('active');
-  if (p === 'events') renderEvents('all');
+  if (p === 'events') loadAndRenderEvents('all');
   window.scrollTo(0,0);
 }
 
-function renderEvents(filter) {
-  let list = eventsData;
-  if (filter==='music') list = eventsData.filter(e=>e.type==='music');
-  if (filter==='sports') list = eventsData.filter(e=>e.type==='sports');
-  if (filter==='hot') list = eventsData.filter(e=>e.hot);
-  document.getElementById('events-grid').innerHTML = list.map(e => `
-    <div class="event-card" onclick="openBid(${e.id})">
+// ── AUTH ─────────────────────────────────────────────────────────────────────
+function openModal() {
+  document.getElementById('auth-modal').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('auth-modal').classList.remove('open');
+}
+document.getElementById('auth-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('auth-modal')) closeModal();
+});
+
+function switchAuthTab(tab, btn) {
+  document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('auth-form-signup').style.display = tab === 'signup' ? '' : 'none';
+  document.getElementById('auth-form-login').style.display  = tab === 'login'  ? '' : 'none';
+}
+
+async function doSignup() {
+  const email = document.getElementById('signup-email').value.trim();
+  const pass  = document.getElementById('signup-pass').value;
+  const btn   = document.getElementById('signup-btn');
+  const msg   = document.getElementById('signup-msg');
+  if (!email || !pass) { msg.textContent = 'Please fill in all fields.'; msg.className = 'form-msg err'; return; }
+  btn.disabled = true; btn.textContent = 'Creating account…';
+  const { error } = await sb.auth.signUp({ email, password: pass });
+  if (error) {
+    msg.textContent = error.message; msg.className = 'form-msg err';
+  } else {
+    msg.textContent = '✓ Check your email to confirm your account.'; msg.className = 'form-msg ok';
+  }
+  btn.disabled = false; btn.textContent = 'Create account';
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const btn   = document.getElementById('login-btn');
+  const msg   = document.getElementById('login-msg');
+  if (!email || !pass) { msg.textContent = 'Please fill in all fields.'; msg.className = 'form-msg err'; return; }
+  btn.disabled = true; btn.textContent = 'Logging in…';
+  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) {
+    msg.textContent = error.message; msg.className = 'form-msg err';
+    btn.disabled = false; btn.textContent = 'Log in';
+  } else {
+    closeModal();
+  }
+}
+
+function updateNavForUser(user) {
+  currentUser = user;
+  const authBtn  = document.getElementById('nav-auth-btn');
+  const userArea = document.getElementById('nav-user-area');
+  if (user) {
+    authBtn.style.display = 'none';
+    const short = user.email.split('@')[0];
+    userArea.innerHTML = `<span class="nav-user" onclick="doSignout()" title="Sign out">${short} · sign out</span>`;
+  } else {
+    authBtn.style.display = '';
+    userArea.innerHTML = '';
+  }
+}
+
+async function doSignout() {
+  await sb.auth.signOut();
+}
+
+// Listen for auth state changes
+sb.auth.onAuthStateChange(async (_event, session) => {
+  const user = session?.user || null;
+  currentUser = user;
+  // Update basic nav first (name + sign out)
+  const authBtn  = document.getElementById('nav-auth-btn');
+  const userArea = document.getElementById('nav-user-area');
+  if (user) {
+    authBtn.style.display = 'none';
+    const short = user.email.split('@')[0];
+    userArea.innerHTML = `<span class="nav-user" onclick="doSignout()" title="Sign out">${short} · sign out</span>`;
+  } else {
+    authBtn.style.display = '';
+    userArea.innerHTML = '';
+  }
+  // Then load profile and update role-based nav
+  await loadProfile(user);
+});
+
+// ── EVENTS ───────────────────────────────────────────────────────────────────
+async function loadAndRenderEvents(filter) {
+  document.getElementById('events-grid').innerHTML = '<div class="events-loading">Loading events…</div>';
+  let query = sb.from('events').select('*').order('closes_at', { ascending: true });
+  if (filter === 'music')  query = query.eq('type', 'music');
+  if (filter === 'sports') query = query.eq('type', 'sports');
+  if (filter === 'hot')    query = query.eq('hot', true);
+
+  const { data: events, error } = await query;
+  if (error) { document.getElementById('events-grid').innerHTML = '<div class="events-loading">Failed to load events.</div>'; return; }
+
+  // Fetch top bids for all events
+  const { data: topBids } = await sb.from('top_bids').select('*');
+  const bidMap = {};
+  (topBids || []).forEach(b => {
+    if (!bidMap[b.event_id]) bidMap[b.event_id] = {};
+    bidMap[b.event_id][b.tier] = { top: b.top_amount, count: parseInt(b.bid_count) };
+  });
+
+  eventsCache = events.map(e => ({ ...e, bidMap: bidMap[e.id] || {} }));
+
+  if (!eventsCache.length) {
+    document.getElementById('events-grid').innerHTML = '<div class="events-loading">No events found.</div>';
+    return;
+  }
+
+  document.getElementById('events-grid').innerHTML = eventsCache.map(e => {
+    const exact     = e.bidMap.exact?.top || '—';
+    const totalBids = (e.bidMap.exact?.count||0) + (e.bidMap.entry?.count||0) + (e.bidMap.lowball?.count||0);
+    const secsLeft  = Math.max(0, Math.floor((new Date(e.closes_at) - Date.now()) / 1000));
+    const timerStr  = secsLeft > 3600
+      ? Math.floor(secsLeft/3600)+'h '+ Math.floor((secsLeft%3600)/60)+'m left'
+      : Math.floor(secsLeft/60)+'m left';
+    return `
+    <div class="event-card" onclick="openBid('${e.id}')">
       <span class="event-type-tag tag-${e.type}">${e.type}</span>
       <div class="event-artist">${e.artist}</div>
       <div class="event-meta">${e.venue}<br>${e.city} · ${e.date}</div>
       <div class="event-bid-row">
-        <div><div class="bid-label">Top bid · exact seat</div><div class="bid-amount">$${e.prices.exact}</div></div>
-        <div style="text-align:right;"><div class="bid-count">${e.bids} bids</div><div class="event-timer" style="margin-top:4px;">${e.timer} left</div></div>
+        <div><div class="bid-label">Top bid · exact seat</div><div class="bid-amount">${exact==='—'?'—':'$'+exact}</div></div>
+        <div style="text-align:right;"><div class="bid-count">${totalBids} bids</div><div class="event-timer" style="margin-top:4px;">${timerStr}</div></div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function filterEvents(btn, filter) {
-  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  renderEvents(filter);
+  loadAndRenderEvents(filter);
 }
 
-function openBid(id) {
-  currentEvent = eventsData[id];
+// ── BID PAGE ─────────────────────────────────────────────────────────────────
+async function openBid(eventId) {
+  const event = eventsCache.find(e => e.id === eventId);
+  if (!event) return;
+  currentEvent = event;
   activeTier = 'exact';
   showPage('bid');
-  document.getElementById('bid-event-title').textContent = currentEvent.artist;
-  document.getElementById('bid-event-tag').textContent = currentEvent.type;
-  document.getElementById('bid-event-tag').className = 'event-type-tag tag-'+currentEvent.type;
-  document.getElementById('bid-event-meta').innerHTML = currentEvent.venue+'<br>'+currentEvent.city+' &nbsp;·&nbsp; '+currentEvent.date;
-  document.getElementById('buy-now-price').textContent = '$'+currentEvent.buyNow;
-  document.getElementById('bid-meta-row').textContent = currentEvent.bids+' bids · auction live';
-  updatePrices();
+
+  document.getElementById('bid-event-title').textContent = event.artist;
+  document.getElementById('bid-event-tag').textContent   = event.type;
+  document.getElementById('bid-event-tag').className     = 'event-type-tag tag-'+event.type;
+  document.getElementById('bid-event-meta').innerHTML    = event.venue+'<br>'+event.city+' &nbsp;·&nbsp; '+event.date;
+  document.getElementById('buy-now-price').textContent   = '$'+event.buy_now;
+
+  await refreshBidPrices(eventId);
   selectTier('exact', document.querySelector('.tier-tab'));
-  const parts = currentEvent.timer.replace('h','').replace('m','').trim().split(' ');
-  timerSecs = (parseInt(parts[0]||0)*3600)+(parseInt(parts[1]||0)*60);
+
+  // countdown timer
+  const secsLeft = Math.max(0, Math.floor((new Date(event.closes_at) - Date.now()) / 1000));
+  timerSecs = secsLeft;
   if (timerInterval) clearInterval(timerInterval);
   timerInterval = setInterval(tickTimer, 1000);
   tickTimer();
-  renderActivity();
-  if (activityInterval) clearInterval(activityInterval);
-  activityInterval = setInterval(()=>addActivityItem(), 3800+Math.random()*3500);
+
+  // seed activity feed with recent bids
+  await loadRecentActivity(eventId);
+
+  // realtime subscription for live bids
+  if (realtimeChan) await sb.removeChannel(realtimeChan);
+  realtimeChan = sb.channel('bids-'+eventId)
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:'bids', filter:`event_id=eq.${eventId}` },
+      payload => {
+        const bid = payload.new;
+        // update price if this bid is the new top
+        if (bid.amount > (currentPrices[bid.tier] || 0)) {
+          currentPrices[bid.tier] = bid.amount;
+          updatePriceDisplay();
+        }
+        currentBidCount++;
+        document.getElementById('bid-meta-row').textContent = currentBidCount+' bids · auction live';
+        addActivityItem(bid.amount, null, bid.tier, false);
+      })
+    .subscribe();
 }
 
-function updatePrices() {
-  const p = currentEvent.prices;
-  document.getElementById('tt-price-exact').textContent = '$'+p.exact;
-  document.getElementById('tt-price-entry').textContent = '$'+p.entry;
-  document.getElementById('tt-price-lowball').textContent = '$'+p.lowball;
-  document.getElementById('pill-price-exact').textContent = '$'+p.exact;
-  document.getElementById('pill-price-entry').textContent = '$'+p.entry;
-  document.getElementById('pill-price-lowball').textContent = '$'+p.lowball;
+async function refreshBidPrices(eventId) {
+  const { data } = await sb.from('top_bids').select('*').eq('event_id', eventId);
+  currentPrices = { exact:0, entry:0, lowball:0 };
+  currentBidCount = 0;
+  (data||[]).forEach(b => {
+    currentPrices[b.tier] = b.top_amount || 0;
+    currentBidCount += parseInt(b.bid_count||0);
+  });
+  updatePriceDisplay();
+  document.getElementById('bid-meta-row').textContent = currentBidCount+' bids · auction live';
+}
+
+function updatePriceDisplay() {
+  const fmt = n => n ? '$'+n : '—';
+  document.getElementById('tt-price-exact').textContent   = fmt(currentPrices.exact);
+  document.getElementById('tt-price-entry').textContent   = fmt(currentPrices.entry);
+  document.getElementById('tt-price-lowball').textContent = fmt(currentPrices.lowball);
+  document.getElementById('pill-price-exact').textContent   = fmt(currentPrices.exact);
+  document.getElementById('pill-price-entry').textContent   = fmt(currentPrices.entry);
+  document.getElementById('pill-price-lowball').textContent = fmt(currentPrices.lowball);
+}
+
+async function loadRecentActivity(eventId) {
+  document.getElementById('activity-feed').innerHTML = '';
+  const { data } = await sb.from('bids').select('amount,tier,created_at').eq('event_id', eventId).order('created_at', {ascending:false}).limit(7);
+  (data||[]).reverse().forEach(b => addActivityItem(b.amount, null, b.tier, true));
+}
+
+// ── BIDDING ───────────────────────────────────────────────────────────────────
+async function placeBid() {
+  if (!currentUser) { openModal(); return; }
+
+  const inp = document.getElementById('bid-input');
+  const val = parseInt(inp.value);
+
+  if (!val || val < 1) {
+    inp.style.borderColor = '#c94b1e';
+    setTimeout(() => { inp.style.borderColor = ''; }, 800);
+    showFlash('Enter a valid bid amount', 'error-flash');
+    return;
+  }
+
+  // Client-side pre-check (UX only — server validates authoritatively)
+  const curTop = currentPrices[activeTier] || 0;
+  if (val <= curTop) {
+    inp.style.borderColor = '#c94b1e';
+    setTimeout(() => { inp.style.borderColor = ''; }, 800);
+    showFlash('Bid must be higher than $'+curTop, 'error-flash');
+    return;
+  }
+
+  const btn = document.getElementById('place-bid-btn');
+  btn.disabled = true;
+  btn.textContent = 'Placing…';
+
+  const selectedSection = document.querySelector('.seat-block[data-selected="true"]')?.dataset.section || 'Floor GA';
+
+  // Call the server-side atomic function instead of inserting directly
+  const { data, error } = await sb.rpc('place_bid', {
+    p_event_id: currentEvent.id,
+    p_tier:     activeTier,
+    p_amount:   val,
+    p_section:  selectedSection
+  });
+
+  btn.disabled = false;
+  btn.textContent = 'Bid now';
+
+  if (error) {
+    showFlash('Error placing bid — try again', 'error-flash');
+    console.error('Bid RPC error:', error);
+    return;
+  }
+
+  if (!data?.ok) {
+    // Server rejected the bid (e.g. outbid between client check and server insert)
+    inp.style.borderColor = '#c94b1e';
+    setTimeout(() => { inp.style.borderColor = ''; }, 800);
+    showFlash(data?.error || 'Bid rejected', 'error-flash');
+    // Refresh prices so client is up to date
+    if (data?.current_top) currentPrices[activeTier] = data.current_top;
+    updatePriceDisplay();
+    return;
+  }
+
+  // Success — update UI optimistically (realtime will also confirm)
+  currentPrices[activeTier] = val;
+  updatePriceDisplay();
+  currentBidCount++;
+  document.getElementById('bid-meta-row').textContent = currentBidCount+' bids · auction live';
+  inp.value = '';
+  inp.placeholder = '$'+(val+1);
+  showFlash('Bid of $'+val+' placed!', activeTier === 'lowball' ? 'amber-flash' : '');
+}
+
+function showFlash(msg, cls='') {
+  const f = document.getElementById('bid-flash');
+  f.textContent = msg;
+  f.className = 'bid-flash show' + (cls ? ' '+cls : '');
+  setTimeout(() => { f.className = 'bid-flash'; }, 2600);
 }
 
 function selectTier(tier, btn) {
   activeTier = tier;
-  const isAmber = tier==='lowball';
-  document.querySelectorAll('.tier-tab').forEach(t=>{ t.className='tier-tab'; });
-  btn.classList.add(isAmber?'active-amber':'active-exact');
+  const isAmber = tier === 'lowball';
+  document.querySelectorAll('.tier-tab').forEach(t => { t.className = 'tier-tab'; });
+  btn.classList.add(isAmber ? 'active-amber' : 'active-exact');
   const meta = tierMeta[tier];
-  document.getElementById('tier-info-title').textContent = meta.title;
-  document.getElementById('tier-info-desc').textContent = meta.desc;
+  document.getElementById('tier-info-title').textContent  = meta.title;
+  document.getElementById('tier-info-desc').textContent   = meta.desc;
   const d = document.getElementById('tier-info-detail');
-  d.textContent = meta.detail; d.className='tier-info-detail '+meta.detailCls;
-  document.getElementById('tier-info-panel').className='tier-info-panel '+meta.panelCls;
-  const price = currentEvent ? currentEvent.prices[tier] : 0;
+  d.textContent = meta.detail; d.className = 'tier-info-detail '+meta.detailCls;
+  document.getElementById('tier-info-panel').className = 'tier-info-panel '+meta.panelCls;
+  const price = currentPrices[tier] || 0;
   document.getElementById('bid-input').placeholder = '$'+(price+1);
-  document.getElementById('bid-input').className = 'bid-input'+(isAmber?' amber-input':'');
+  document.getElementById('bid-input').className   = 'bid-input'+(isAmber?' amber-input':'');
   document.getElementById('place-bid-btn').className = 'place-bid-btn'+(isAmber?' amber-btn':'');
   document.getElementById('bid-input-label').textContent = 'Your bid — '+meta.title;
-  document.querySelectorAll('.price-pill').forEach(p=>p.className='price-pill');
-  document.getElementById('pill-'+tier).classList.add(isAmber?'active-amber-pill':'active-green');
-  document.querySelectorAll('.seat-block').forEach(b=>{ b.classList.remove('selected','selected-amber'); });
+  document.querySelectorAll('.price-pill').forEach(p => p.className = 'price-pill');
+  document.getElementById('pill-'+tier).classList.add(isAmber ? 'active-amber-pill' : 'active-green');
+  document.querySelectorAll('.seat-block').forEach(b => { b.classList.remove('selected','selected-amber'); });
   const sel = document.querySelector('.seat-block[data-selected="true"]') || document.querySelector('.seat-block');
-  if (sel) sel.classList.add(isAmber?'selected-amber':'selected');
+  if (sel) sel.classList.add(isAmber ? 'selected-amber' : 'selected');
 }
 
 function selectTierFromPill(tier) {
@@ -608,66 +1250,442 @@ function selectTierFromPill(tier) {
 }
 
 function selectSeat(el, section) {
-  const isAmber = activeTier==='lowball';
-  document.querySelectorAll('.seat-block').forEach(b=>{ b.classList.remove('selected','selected-amber'); delete b.dataset.selected; });
-  el.classList.add(isAmber?'selected-amber':'selected');
+  const isAmber = activeTier === 'lowball';
+  document.querySelectorAll('.seat-block').forEach(b => { b.classList.remove('selected','selected-amber'); delete b.dataset.selected; });
+  el.classList.add(isAmber ? 'selected-amber' : 'selected');
   el.dataset.selected = 'true';
-  document.getElementById('seat-avail').textContent = section+' selected · '+(Math.floor(Math.random()*20)+3)+' bids active';
+  document.getElementById('seat-avail').textContent = section+' selected';
+}
+
+function addAmount(n) {
+  const inp = document.getElementById('bid-input');
+  inp.value = (parseInt(inp.value)||(currentPrices[activeTier]||0))+n;
 }
 
 function tickTimer() {
-  if (timerSecs<=0) { clearInterval(timerInterval); return; }
+  if (timerSecs <= 0) { clearInterval(timerInterval); return; }
   timerSecs--;
   document.getElementById('timer-h').textContent = String(Math.floor(timerSecs/3600)).padStart(2,'0');
   document.getElementById('timer-m').textContent = String(Math.floor((timerSecs%3600)/60)).padStart(2,'0');
   document.getElementById('timer-s').textContent = String(timerSecs%60).padStart(2,'0');
 }
 
-function addAmount(n) {
-  const inp = document.getElementById('bid-input');
-  inp.value = (parseInt(inp.value)||(currentEvent?currentEvent.prices[activeTier]:0))+n;
+// ── ACTIVITY FEED ─────────────────────────────────────────────────────────────
+// Masked names for privacy e.g. "A****n"
+function maskName(name) {
+  if (name.length <= 2) return name+'****';
+  return name[0]+'****'+name[name.length-1];
+}
+const fallbackNames = ['Alex','Jordan','Morgan','Taylor','Casey','Blake','Sam','Riley'];
+
+function addActivityItem(amount, who, tier, append) {
+  const feed   = document.getElementById('activity-feed');
+  const name   = who || maskName(fallbackNames[Math.floor(Math.random()*fallbackNames.length)]);
+  const tagCls = tier==='lowball' ? 'at-low' : 'at-exact';
+  const tagLbl = tier==='exact' ? 'Exact' : tier==='entry' ? 'Entry' : 'Standby';
+  const item   = document.createElement('div');
+  item.className = 'activity-item';
+  item.innerHTML = `<div><div class="activity-bidder">${name}</div><span class="activity-tier ${tagCls}">${tagLbl}</span></div><div class="activity-amount">$${amount}</div>`;
+  if (append) { feed.appendChild(item); } else { feed.insertBefore(item, feed.firstChild); }
+  const items = feed.querySelectorAll('.activity-item');
+  if (items.length > 7) items[items.length-1].remove();
 }
 
-function placeBid() {
-  const inp = document.getElementById('bid-input');
-  const val = parseInt(inp.value);
-  const cur = currentEvent ? currentEvent.prices[activeTier] : 0;
-  const isAmber = activeTier==='lowball';
-  if (!val||val<=cur) { inp.style.borderColor='#c94b1e'; setTimeout(()=>{inp.style.borderColor='';},800); return; }
-  currentEvent.prices[activeTier] = val;
-  updatePrices();
-  currentEvent.bids++;
-  document.getElementById('bid-meta-row').textContent = currentEvent.bids+' bids · auction live';
-  inp.value=''; inp.placeholder='$'+(val+1);
-  const f = document.getElementById('bid-flash');
-  f.textContent='Bid of $'+val+' placed';
-  f.className='bid-flash show'+(isAmber?' amber-flash':'');
-  setTimeout(()=>{f.className='bid-flash';},2400);
-  addActivityItem(val,'You',false);
+
+// ── PROFILE / ROLE ───────────────────────────────────────────────────────────
+let currentProfile = null;
+
+async function loadProfile(user) {
+  if (!user) { currentProfile = null; updateNavForRole(null); return; }
+  const { data } = await sb.from('profiles').select('*').eq('id', user.id).single();
+  currentProfile = data;
+  updateNavForRole(data?.role || 'attendee');
 }
 
-function renderActivity() {
-  document.getElementById('activity-feed').innerHTML='';
-  for(let i=0;i<5;i++) addActivityItem(null,null,true);
+function updateNavForRole(role) {
+  const mybidsLink   = document.getElementById('nav-mybids');
+  const promoterLink = document.getElementById('nav-promoter');
+  const adminLink    = document.getElementById('nav-admin');
+  mybidsLink.style.display   = role ? '' : 'none';
+  promoterLink.style.display = (role === 'promoter' || role === 'admin') ? '' : 'none';
+  adminLink.style.display    = role === 'admin' ? '' : 'none';
 }
 
-function addActivityItem(amount,who,append) {
-  const feed = document.getElementById('activity-feed');
-  const tier = tierKeys[Math.floor(Math.random()*tierKeys.length)];
-  const base = currentEvent ? currentEvent.prices[tier] : 100;
-  const amt = amount || Math.max(1, base-Math.floor(Math.random()*30+3));
-  const name = who || names[Math.floor(Math.random()*names.length)];
-  const tagCls = tier==='lowball'?'at-low':'at-exact';
-  const tagLbl = tier==='exact'?'Exact':tier==='entry'?'Entry':'Standby';
-  const item = document.createElement('div');
-  item.className='activity-item';
-  item.innerHTML=`<div><div class="activity-bidder">${name}</div><span class="activity-tier ${tagCls}">${tagLbl}</span></div><div class="activity-amount">$${amt}</div>`;
-  if(append){feed.appendChild(item);}else{feed.insertBefore(item,feed.firstChild);}
-  const items=feed.querySelectorAll('.activity-item');
-  if(items.length>7) items[items.length-1].remove();
+// Profile loading is handled directly in auth state listeners below
+
+// ── MY BIDS ──────────────────────────────────────────────────────────────────
+function switchMyBidsTab(tab, el) {
+  document.querySelectorAll('#page-mybids .dash-nav-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('#page-mybids .dash-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('mybids-tab-'+tab).classList.add('active');
+  if (tab === 'bids') loadMyBids();
+  if (tab === 'account') loadMyAccount();
 }
 
-renderEvents('all');
+async function loadMyBids() {
+  if (!currentUser) { showPage('home'); openModal(); return; }
+  const list = document.getElementById('mybids-list');
+  list.innerHTML = '<div class="dash-empty">Loading…</div>';
+
+  const { data: bids, error } = await sb
+    .from('bids')
+    .select('*, events(artist, venue, city, date)')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false });
+
+  if (error || !bids?.length) {
+    list.innerHTML = '<div class="dash-empty">No bids yet — go find an event!</div>';
+    document.getElementById('stat-total-bids').textContent = '0';
+    document.getElementById('stat-active-bids').textContent = '0';
+    document.getElementById('stat-top-bid').textContent = '—';
+    return;
+  }
+
+  document.getElementById('stat-total-bids').textContent = bids.length;
+  const uniqueEvents = new Set(bids.map(b => b.event_id)).size;
+  document.getElementById('stat-active-bids').textContent = uniqueEvents;
+  const topBid = Math.max(...bids.map(b => b.amount));
+  document.getElementById('stat-top-bid').textContent = '$' + topBid;
+
+  // Also fetch auction results so we can show won/lost status
+  const eventIds = [...new Set(bids.map(b => b.event_id))];
+  const { data: results } = await sb
+    .from('auction_results')
+    .select('bid_id, outcome')
+    .eq('user_id', currentUser.id);
+  const resultMap = {};
+  (results||[]).forEach(r => { resultMap[r.bid_id] = r.outcome; });
+
+  const tierLabel = { exact:'Lock it in', entry:'Get in', lowball:'Shoot your shot' };
+  const outcomeStyle = {
+    won:  'color:var(--acid);font-weight:600',
+    lost: 'color:var(--rust)',
+    refunded: 'color:var(--muted)'
+  };
+  const outcomeLabel = { won:'✓ Won', lost:'Not successful', refunded:'Refunded' };
+
+  list.innerHTML = bids.map(b => {
+    const outcome = resultMap[b.id];
+    const isLive  = !outcome;
+    return `
+    <div class="my-bid-card" style="${outcome === 'lost' ? 'opacity:0.6' : ''}">
+      <div>
+        <div class="my-bid-event">${b.events?.artist || '—'}</div>
+        <div class="my-bid-meta">${b.events?.venue || ''} · ${b.events?.date || ''}<br>${b.section || ''} · ${new Date(b.created_at).toLocaleDateString()}</div>
+        ${isLive ? '<div style="font-family:var(--font-mono);font-size:10px;color:var(--acid);margin-top:4px;">● Live</div>' : ''}
+      </div>
+      <div>
+        <div class="my-bid-amount" style="${outcome ? outcomeStyle[outcome]||'' : ''}"}>$${b.amount}</div>
+        <div class="my-bid-tier">${tierLabel[b.tier] || b.tier}</div>
+        ${outcome ? `<div style="font-family:var(--font-mono);font-size:10px;margin-top:4px;${outcomeStyle[outcome]||''}">${outcomeLabel[outcome]}</div>` : ''}
+      </div>
+    </div>`}).join('');
+}
+
+async function loadMyAccount() {
+  if (!currentUser) return;
+  document.getElementById('mybids-account-email').textContent = currentUser.email;
+  const roleMap = { attendee:'Attendee — can browse and bid on events', promoter:'Promoter — can create and manage events', admin:'Admin — full platform access' };
+  const role = currentProfile?.role || 'attendee';
+  document.getElementById('mybids-role-display').innerHTML =
+    `<span class="role-badge role-${role}">${role}</span><p style="margin-top:0.75rem;font-size:13px;color:var(--muted);">${roleMap[role]}</p>`;
+}
+
+// ── PROMOTER DASH ────────────────────────────────────────────────────────────
+let promoterSections = [];
+
+function switchPromoterTab(tab, el) {
+  document.querySelectorAll('#page-promoter .dash-nav-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('#page-promoter .dash-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('promoter-tab-'+tab).classList.add('active');
+  if (tab === 'events') loadPromoterEvents();
+  if (tab === 'bids') { loadPromoterBidFilter(); loadPromoterBids(); }
+}
+
+async function loadPromoterDash() {
+  loadPromoterEvents();
+}
+
+async function loadPromoterEvents() {
+  if (!currentUser) return;
+  const el = document.getElementById('promoter-events-list');
+  el.innerHTML = '<div class="dash-empty">Loading…</div>';
+  const { data: events } = await sb.from('events').select('*').eq('promoter_id', currentUser.id).order('created_at', { ascending: false });
+  if (!events?.length) { el.innerHTML = '<div class="dash-empty">No events yet — create your first one!</div>'; return; }
+
+  const { data: topBids } = await sb.from('top_bids').select('*').in('event_id', events.map(e => e.id));
+  const bidMap = {};
+  (topBids||[]).forEach(b => {
+    bidMap[b.event_id] = (bidMap[b.event_id]||0) + parseInt(b.bid_count||0);
+  });
+
+  el.innerHTML = `<table class="dash-table">
+    <thead><tr><th>Event</th><th>Status</th><th>Buy Now</th><th>Closes</th><th>Bids</th><th></th></tr></thead>
+    <tbody>${events.map(e => `
+      <tr>
+        <td><strong>${e.artist}</strong><br><span style="font-size:11px;color:var(--muted)">${e.venue} · ${e.city}</span></td>
+        <td><span class="status-badge ${e.published ? 'status-live' : 'status-draft'}">${e.published ? 'Live' : 'Draft'}</span></td>
+        <td style="font-family:var(--font-mono)">$${e.buy_now}</td>
+        <td style="font-family:var(--font-mono);font-size:11px;">${new Date(e.closes_at).toLocaleDateString()}</td>
+        <td style="font-family:var(--font-mono)">${bidMap[e.id]||0}</td>
+        <td>
+          <button class="dash-btn-danger" onclick="togglePublish('${e.id}',${e.published})">${e.published ? 'Unpublish' : 'Publish'}</button>
+        </td>
+      </tr>`).join('')}
+    </tbody></table>`;
+}
+
+async function togglePublish(eventId, current) {
+  await sb.from('events').update({ published: !current }).eq('id', eventId);
+  loadPromoterEvents();
+}
+
+function addSection() {
+  const name   = document.getElementById('ce-sec-name').value.trim();
+  const detail = document.getElementById('ce-sec-detail').value.trim();
+  const cap    = parseInt(document.getElementById('ce-sec-cap').value) || 0;
+  if (!name) return;
+  promoterSections.push({ name, detail, capacity: cap, sort_order: promoterSections.length + 1 });
+  renderSectionList();
+  document.getElementById('ce-sec-name').value = '';
+  document.getElementById('ce-sec-detail').value = '';
+  document.getElementById('ce-sec-cap').value = '';
+}
+
+function removeSection(i) {
+  promoterSections.splice(i, 1);
+  renderSectionList();
+}
+
+function renderSectionList() {
+  document.getElementById('ce-sections-list').innerHTML = promoterSections.map((s, i) => `
+    <div class="section-row">
+      <span class="section-row-name">${s.name}</span>
+      <span class="section-row-detail">${s.detail} ${s.capacity ? '· '+s.capacity+' cap' : ''}</span>
+      <button class="dash-btn-danger" onclick="removeSection(${i})" style="padding:3px 10px;">×</button>
+    </div>`).join('');
+}
+
+async function submitNewEvent() {
+  const artist   = document.getElementById('ce-artist').value.trim();
+  const type     = document.getElementById('ce-type').value;
+  const venue    = document.getElementById('ce-venue').value.trim();
+  const city     = document.getElementById('ce-city').value.trim();
+  const date     = document.getElementById('ce-date').value.trim();
+  const closesAt = document.getElementById('ce-closes').value;
+  const buyNow   = parseInt(document.getElementById('ce-buynow').value) || 0;
+  const publish  = document.getElementById('ce-publish').checked;
+  const msg      = document.getElementById('ce-msg');
+
+  if (!artist || !venue || !city || !date || !closesAt) {
+    msg.textContent = 'Please fill in all required fields.'; msg.className = 'dash-msg err'; return;
+  }
+
+  const btn = document.getElementById('ce-submit-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  const { data: event, error } = await sb.from('events').insert({
+    promoter_id: currentUser.id, artist, type, venue, city, date,
+    buy_now: buyNow, closes_at: new Date(closesAt).toISOString(), published: publish
+  }).select().single();
+
+  if (error) {
+    msg.textContent = 'Error: ' + error.message; msg.className = 'dash-msg err';
+    btn.disabled = false; btn.textContent = 'Save Event'; return;
+  }
+
+  // Save sections
+  if (promoterSections.length && event?.id) {
+    await sb.from('sections').insert(promoterSections.map(s => ({ ...s, event_id: event.id })));
+  }
+
+  msg.textContent = '✓ Event saved' + (publish ? ' and published!' : ' as draft.'); msg.className = 'dash-msg ok';
+  btn.disabled = false; btn.textContent = 'Save Event';
+  promoterSections = [];
+  renderSectionList();
+  // Clear form
+  ['ce-artist','ce-venue','ce-city','ce-date','ce-closes','ce-buynow'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('ce-publish').checked = false;
+}
+
+async function loadPromoterBidFilter() {
+  const sel = document.getElementById('promoter-bid-event-filter');
+  const { data: events } = await sb.from('events').select('id,artist').eq('promoter_id', currentUser.id);
+  sel.innerHTML = '<option value="all">All events</option>' +
+    (events||[]).map(e => `<option value="${e.id}">${e.artist}</option>`).join('');
+}
+
+async function loadPromoterBids() {
+  const filter = document.getElementById('promoter-bid-event-filter')?.value;
+  const tbody  = document.getElementById('promoter-bids-body');
+  tbody.innerHTML = '<tr><td colspan="5" class="dash-empty">Loading…</td></tr>';
+
+  let query = sb.from('bids').select('*, events!inner(artist, promoter_id)').eq('events.promoter_id', currentUser.id).order('created_at', { ascending: false }).limit(100);
+  if (filter && filter !== 'all') query = query.eq('event_id', filter);
+
+  const { data: bids } = await query;
+  if (!bids?.length) { tbody.innerHTML = '<tr><td colspan="5" class="dash-empty">No bids yet.</td></tr>'; return; }
+
+  const tierLabel = { exact:'Lock it in', entry:'Get in', lowball:'Shoot your shot' };
+  tbody.innerHTML = bids.map(b => `
+    <tr>
+      <td>${b.events?.artist || '—'}</td>
+      <td><span class="role-badge role-attendee">${tierLabel[b.tier]||b.tier}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${b.section||'—'}</td>
+      <td style="font-family:var(--font-display);font-size:18px;color:var(--acid)">$${b.amount}</td>
+      <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted)">${new Date(b.created_at).toLocaleDateString()}</td>
+    </tr>`).join('');
+}
+
+// ── ADMIN DASH ───────────────────────────────────────────────────────────────
+function switchAdminTab(tab, el) {
+  document.querySelectorAll('#page-admin .dash-nav-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('#page-admin .dash-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('admin-tab-'+tab).classList.add('active');
+  if (tab === 'overview') loadAdminOverview();
+  if (tab === 'events')   loadAdminEvents();
+  if (tab === 'users')    loadAdminUsers();
+  if (tab === 'invites')  loadAdminInvites();
+}
+
+async function loadAdminDash() {
+  loadAdminOverview();
+}
+
+async function loadAdminOverview() {
+  const [eventsRes, bidsRes, usersRes] = await Promise.all([
+    sb.from('events').select('id', { count:'exact' }).eq('published', true),
+    sb.from('bids').select('id', { count:'exact' }),
+    sb.from('profiles').select('id,role', { count:'exact' })
+  ]);
+  document.getElementById('admin-stat-events').textContent    = eventsRes.count ?? '—';
+  document.getElementById('admin-stat-bids').textContent      = bidsRes.count ?? '—';
+  document.getElementById('admin-stat-users').textContent     = usersRes.count ?? '—';
+  const promoterCount = (usersRes.data||[]).filter(u => u.role === 'promoter').length;
+  document.getElementById('admin-stat-promoters').textContent = promoterCount;
+}
+
+async function loadAdminEvents() {
+  const tbody = document.getElementById('admin-events-body');
+  const { data: events } = await sb.from('events').select('*, profiles(email)').order('created_at', { ascending: false });
+  const { data: topBids } = await sb.from('top_bids').select('*');
+  const bidMap = {};
+  (topBids||[]).forEach(b => { bidMap[b.event_id] = (bidMap[b.event_id]||0) + parseInt(b.bid_count||0); });
+
+  if (!events?.length) { tbody.innerHTML = '<tr><td colspan="6" class="dash-empty">No events.</td></tr>'; return; }
+  // Check which events are already closed
+  const { data: closedEvents } = await sb.from('auction_results').select('event_id').limit(1000);
+  const closedSet = new Set((closedEvents||[]).map(r => r.event_id));
+
+  tbody.innerHTML = events.map(e => {
+    const isClosed   = closedSet.has(e.id);
+    const isPast     = new Date(e.closes_at) < new Date();
+    const canClose   = isPast && !isClosed && (e.published || bidMap[e.id] > 0);
+    return `
+    <tr>
+      <td><strong>${e.artist}</strong><br><span style="font-size:11px;color:var(--muted)">${e.venue}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${e.profiles?.email || 'Seeded'}</td>
+      <td><span class="status-badge ${e.published ? 'status-live' : 'status-draft'}">${isClosed ? 'Closed' : e.published ? 'Live' : 'Draft'}</span></td>
+      <td style="font-family:var(--font-mono);font-size:11px;">${new Date(e.closes_at).toLocaleDateString()}</td>
+      <td style="font-family:var(--font-mono)">${bidMap[e.id]||0}</td>
+      <td>${canClose ? `<button class="dash-btn" style="font-size:11px;padding:5px 12px;" onclick="adminCloseAuction('${e.id}')">Close auction</button>` : isClosed ? '<span style="font-size:11px;color:var(--acid);font-family:var(--font-mono)">✓ Processed</span>' : ''}</td>
+      <td><button class="dash-btn-danger" onclick="adminTogglePublish('${e.id}',${e.published})">${e.published ? 'Unpublish' : 'Publish'}</button></td>
+    </tr>`}).join('');
+}
+
+async function adminTogglePublish(id, current) {
+  await sb.from('events').update({ published: !current }).eq('id', id);
+  loadAdminEvents();
+}
+
+async function adminCloseAuction(eventId) {
+  if (!confirm('Close this auction now? This will determine winners and losers and cannot be undone.')) return;
+  const { data, error } = await sb.rpc('close_auction', { p_event_id: eventId });
+  if (error || !data?.ok) {
+    alert('Error closing auction: ' + (data?.error || error?.message || 'Unknown error'));
+    return;
+  }
+  alert(`Auction closed. Winners: ${data.winners}, Losers: ${data.losers}. Loser emails will be sent automatically.`);
+  loadAdminEvents();
+}
+
+async function loadAdminUsers() {
+  const tbody = document.getElementById('admin-users-body');
+  const { data: users } = await sb.from('profiles').select('*').order('created_at', { ascending: false });
+  if (!users?.length) { tbody.innerHTML = '<tr><td colspan="4" class="dash-empty">No users yet.</td></tr>'; return; }
+  tbody.innerHTML = users.map(u => `
+    <tr>
+      <td style="font-family:var(--font-mono);font-size:12px">${u.email}</td>
+      <td><span class="role-badge role-${u.role}">${u.role}</span></td>
+      <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted)">${new Date(u.created_at).toLocaleDateString()}</td>
+      <td>
+        <select class="dash-select" style="padding:4px 8px;font-size:11px;width:120px;" onchange="changeUserRole('${u.id}',this.value)">
+          <option value="attendee" ${u.role==='attendee'?'selected':''}>Attendee</option>
+          <option value="promoter" ${u.role==='promoter'?'selected':''}>Promoter</option>
+          <option value="admin"    ${u.role==='admin'?'selected':''}>Admin</option>
+        </select>
+      </td>
+    </tr>`).join('');
+}
+
+async function changeUserRole(userId, role) {
+  await sb.from('profiles').update({ role }).eq('id', userId);
+}
+
+async function loadAdminInvites() {
+  const tbody = document.getElementById('admin-invites-body');
+  const { data: invites } = await sb.from('invites').select('*').order('created_at', { ascending: false });
+  if (!invites?.length) { tbody.innerHTML = '<tr><td colspan="4" class="dash-empty">No invites sent yet.</td></tr>'; return; }
+  tbody.innerHTML = invites.map(i => `
+    <tr>
+      <td style="font-family:var(--font-mono);font-size:12px">${i.email}</td>
+      <td><span class="role-badge role-${i.role}">${i.role}</span></td>
+      <td style="font-size:12px;color:${i.used?'var(--acid)':'var(--muted)'}">${i.used ? '✓ Accepted' : 'Pending'}</td>
+      <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted)">${new Date(i.created_at).toLocaleDateString()}</td>
+    </tr>`).join('');
+}
+
+async function sendInvite() {
+  const email = document.getElementById('invite-email').value.trim();
+  const role  = document.getElementById('invite-role').value;
+  const msg   = document.getElementById('invite-msg');
+  const btn   = document.getElementById('invite-btn');
+  if (!email) { msg.textContent = 'Enter an email address.'; msg.className = 'dash-msg err'; return; }
+
+  btn.disabled = true; btn.textContent = 'Sending…';
+  const { error } = await sb.from('invites').insert({ email, role, invited_by: currentUser.id });
+  if (error) {
+    msg.textContent = error.code === '23505' ? 'Already invited.' : error.message;
+    msg.className = 'dash-msg err';
+  } else {
+    msg.textContent = '✓ Invite created. Share the signup link with ' + email;
+    msg.className = 'dash-msg ok';
+    document.getElementById('invite-email').value = '';
+    loadAdminInvites();
+  }
+  btn.disabled = false; btn.textContent = 'Send Invite';
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+// Check for existing session on load
+sb.auth.getSession().then(async ({ data: { session } }) => {
+  const user = session?.user || null;
+  currentUser = user;
+  const authBtn  = document.getElementById('nav-auth-btn');
+  const userArea = document.getElementById('nav-user-area');
+  if (user) {
+    authBtn.style.display = 'none';
+    const short = user.email.split('@')[0];
+    userArea.innerHTML = `<span class="nav-user" onclick="doSignout()" title="Sign out">${short} · sign out</span>`;
+  } else {
+    authBtn.style.display = '';
+    userArea.innerHTML = '';
+  }
+  await loadProfile(user);
+});
 </script>
 </body>
 </html>
