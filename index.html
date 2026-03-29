@@ -997,12 +997,13 @@ async function doLogin() {
   const msg   = document.getElementById('login-msg');
   if (!email || !pass) { msg.textContent = 'Please fill in all fields.'; msg.className = 'form-msg err'; return; }
   btn.disabled = true; btn.textContent = 'Logging in…';
-  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
   if (error) {
     msg.textContent = error.message; msg.className = 'form-msg err';
     btn.disabled = false; btn.textContent = 'Log in';
   } else {
-    closeModal();
+    msg.textContent = '✓ Logged in!'; msg.className = 'form-msg ok';
+    setTimeout(() => closeModal(), 800);
   }
 }
 
@@ -1024,24 +1025,7 @@ async function doSignout() {
   await sb.auth.signOut();
 }
 
-// Listen for auth state changes
-sb.auth.onAuthStateChange(async (_event, session) => {
-  const user = session?.user || null;
-  currentUser = user;
-  // Update basic nav first (name + sign out)
-  const authBtn  = document.getElementById('nav-auth-btn');
-  const userArea = document.getElementById('nav-user-area');
-  if (user) {
-    authBtn.style.display = 'none';
-    const short = user.email.split('@')[0];
-    userArea.innerHTML = `<span class="nav-user" onclick="doSignout()" title="Sign out">${short} · sign out</span>`;
-  } else {
-    authBtn.style.display = '';
-    userArea.innerHTML = '';
-  }
-  // Then load profile and update role-based nav
-  await loadProfile(user);
-});
+
 
 // ── EVENTS ───────────────────────────────────────────────────────────────────
 async function loadAndRenderEvents(filter) {
@@ -1671,10 +1655,9 @@ async function sendInvite() {
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-// Check for existing session on load
-sb.auth.getSession().then(async ({ data: { session } }) => {
-  const user = session?.user || null;
+async function handleAuthChange(user) {
   currentUser = user;
+  // Update nav user area
   const authBtn  = document.getElementById('nav-auth-btn');
   const userArea = document.getElementById('nav-user-area');
   if (user) {
@@ -1686,8 +1669,19 @@ sb.auth.getSession().then(async ({ data: { session } }) => {
     userArea.innerHTML = '';
   }
   await loadProfile(user);
-  // Always pre-load events so they are ready when user navigates
-  loadAndRenderEvents('all');
+}
+
+// Single init — use onAuthStateChange as the only source of truth.
+// It fires on page load with the existing session (or null), and again on login/logout.
+let eventsLoaded = false;
+sb.auth.onAuthStateChange(async (_event, session) => {
+  const user = session?.user || null;
+  await handleAuthChange(user);
+  // Load events once on first auth state (whether logged in or not)
+  if (!eventsLoaded) {
+    eventsLoaded = true;
+    loadAndRenderEvents('all');
+  }
 });
 </script>
 </body>
