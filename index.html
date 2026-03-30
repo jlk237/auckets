@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,324 +7,338 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --black:#080808; --surface:#101010; --surface2:#161616; --white:#f4f1ea;
+  --acid:#b8f000; --acid-dim:rgba(184,240,0,0.12);
+  --amber:#f5a623; --amber-dim:rgba(245,166,35,0.13); --amber-border:rgba(245,166,35,0.32);
+  --rust:#c94b1e; --muted:#676560;
+  --border:rgba(244,241,234,0.1); --border-md:rgba(244,241,234,0.2);
+  --fd:'Bebas Neue',sans-serif; --fb:'DM Sans',sans-serif; --fm:'JetBrains Mono',monospace;
+}
+body{background:var(--black);color:var(--white);font-family:var(--fb);font-size:15px;line-height:1.6;min-height:100vh;overflow-x:hidden}
 
-  :root {
-    --black: #080808;
-    --surface: #101010;
-    --surface2: #161616;
-    --white: #f4f1ea;
-    --acid: #b8f000;
-    --acid-dim: rgba(184,240,0,0.12);
-    --amber: #f5a623;
-    --amber-dim: rgba(245,166,35,0.13);
-    --amber-border: rgba(245,166,35,0.32);
-    --rust: #c94b1e;
-    --muted: #676560;
-    --border: rgba(244,241,234,0.1);
-    --border-md: rgba(244,241,234,0.2);
-    --font-display: 'Bebas Neue', sans-serif;
-    --font-body: 'DM Sans', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-  }
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:56px;background:rgba(8,8,8,0.96);backdrop-filter:blur(10px);border-bottom:0.5px solid var(--border)}
+.logo{font-family:var(--fd);font-size:26px;letter-spacing:0.04em;color:var(--acid);cursor:pointer}
+.nav-links{display:flex;gap:2rem;align-items:center}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:13px;letter-spacing:0.06em;text-transform:uppercase;transition:color 0.2s;cursor:pointer}
+.nav-links a:hover,.nav-links a.active{color:var(--white)}
+.nav-btn{background:var(--acid);color:var(--black);border:none;padding:7px 18px;font-family:var(--fb);font-size:13px;font-weight:500;cursor:pointer;border-radius:2px;transition:opacity 0.2s}
+.nav-btn:hover{opacity:0.85}
+.nav-user{font-family:var(--fm);font-size:11px;color:var(--muted);cursor:pointer;white-space:nowrap}
+.nav-user:hover{color:var(--white)}
+.nav-hamburger{display:none;background:none;border:none;color:var(--white);cursor:pointer;padding:4px}
+.nav-hamburger svg{width:22px;height:22px}
+@media(max-width:720px){
+  .nav-links{display:none;position:fixed;top:56px;left:0;right:0;background:rgba(8,8,8,0.98);flex-direction:column;gap:0;padding:1rem 0;border-bottom:0.5px solid var(--border);z-index:199}
+  .nav-links.open{display:flex}
+  .nav-links a,.nav-links span,.nav-links button{padding:0.75rem 2rem!important;width:100%}
+  .nav-hamburger{display:block}
+}
 
-  body { background:var(--black); color:var(--white); font-family:var(--font-body); font-size:15px; line-height:1.6; min-height:100vh; overflow-x:hidden; }
+/* ── PAGES ── */
+.page{display:none}
+.page.active{display:block}
 
-  /* ── NAV ── */
-  nav { position:sticky; top:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:0 2rem; height:56px; background:rgba(8,8,8,0.94); backdrop-filter:blur(10px); border-bottom:0.5px solid var(--border); }
-  .logo { font-family:var(--font-display); font-size:26px; letter-spacing:0.04em; color:var(--acid); }
-  .nav-links { display:flex; gap:2rem; align-items:center; }
-  .nav-links a { color:var(--muted); text-decoration:none; font-size:13px; letter-spacing:0.06em; text-transform:uppercase; transition:color 0.2s; cursor:pointer; }
-  .nav-links a:hover, .nav-links a.active { color:var(--white); }
-  .nav-btn { background:var(--acid); color:var(--black); border:none; padding:7px 18px; font-family:var(--font-body); font-size:13px; font-weight:500; letter-spacing:0.04em; cursor:pointer; border-radius:2px; transition:opacity 0.2s; }
-  .nav-btn:hover { opacity:0.85; }
-  .nav-user { font-family:var(--font-mono); font-size:11px; color:var(--muted); cursor:pointer; }
-  .nav-user:hover { color:var(--white); }
+/* ── TOAST ── */
+.toast{position:fixed;bottom:2rem;right:2rem;padding:12px 20px;border-radius:3px;font-family:var(--fm);font-size:12px;letter-spacing:0.06em;opacity:0;pointer-events:none;transition:opacity 0.25s;z-index:500;max-width:320px}
+.toast.show{opacity:1}
+.toast.ok{background:var(--acid);color:var(--black)}
+.toast.err{background:var(--rust);color:var(--white)}
+.toast.amber{background:var(--amber);color:var(--black)}
 
-  /* mobile nav */
-  .nav-hamburger { display:none; background:none; border:none; color:var(--white); cursor:pointer; padding:4px; }
-  .nav-hamburger svg { width:22px; height:22px; }
-  @media (max-width:680px) {
-    .nav-links { display:none; position:fixed; top:56px; left:0; right:0; background:rgba(8,8,8,0.98); flex-direction:column; gap:0; padding:1rem 0; border-bottom:0.5px solid var(--border); z-index:99; }
-    .nav-links.open { display:flex; }
-    .nav-links a { padding:0.75rem 2rem; width:100%; }
-    .nav-hamburger { display:block; }
-  }
+/* ── LOADING SKELETON ── */
+.skeleton{background:linear-gradient(90deg,var(--surface) 25%,var(--surface2) 50%,var(--surface) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:3px;height:16px;margin-bottom:8px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
-  .page { display:none; }
-  .page.active { display:block; }
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:400;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s;padding:1rem}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border:0.5px solid var(--border-md);border-radius:4px;padding:2.5rem;width:100%;max-width:440px;position:relative;max-height:90vh;overflow-y:auto}
+.modal-title{font-family:var(--fd);font-size:32px;letter-spacing:0.02em;margin-bottom:0.4rem}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:2rem;line-height:1.6}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1;padding:4px}
+.modal-close:hover{color:var(--white)}
+.modal-tabs{display:flex;gap:0;border-bottom:0.5px solid var(--border);margin-bottom:1.75rem}
+.modal-tab{background:none;border:none;color:var(--muted);padding:0.5rem 1.25rem 0.75rem;font-family:var(--fb);font-size:13px;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s}
+.modal-tab.active{color:var(--white);border-bottom-color:var(--acid)}
 
-  /* ── HERO ── */
-  .hero { min-height:88vh; display:flex; flex-direction:column; justify-content:center; padding:5rem 2rem 4rem; position:relative; overflow:hidden; }
-  .hero-bg-text { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-family:var(--font-display); font-size:clamp(120px,22vw,300px); color:rgba(184,240,0,0.025); white-space:nowrap; pointer-events:none; letter-spacing:-0.02em; user-select:none; }
-  .eyebrow { font-family:var(--font-mono); font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--acid); margin-bottom:1.5rem; }
-  .eyebrow span { display:inline-block; width:24px; height:1px; background:var(--acid); vertical-align:middle; margin-right:10px; }
-  h1.hero-title { font-family:var(--font-display); font-size:clamp(52px,9vw,110px); line-height:0.94; letter-spacing:0.01em; max-width:820px; margin-bottom:2rem; }
-  h1.hero-title em { font-style:normal; color:var(--acid); }
-  .hero-sub { max-width:480px; color:var(--muted); font-size:16px; font-weight:300; margin-bottom:3rem; line-height:1.7; }
-  .hero-ctas { display:flex; gap:1rem; align-items:center; flex-wrap:wrap; }
-  .btn-primary { background:var(--acid); color:var(--black); border:none; padding:14px 32px; font-family:var(--font-body); font-size:14px; font-weight:500; letter-spacing:0.04em; cursor:pointer; border-radius:2px; transition:opacity 0.2s; }
-  .btn-primary:hover { opacity:0.85; }
-  .btn-ghost { background:transparent; color:var(--white); border:0.5px solid rgba(244,241,234,0.3); padding:14px 32px; font-family:var(--font-body); font-size:14px; letter-spacing:0.04em; cursor:pointer; border-radius:2px; transition:border-color 0.2s; }
-  .btn-ghost:hover { border-color:rgba(244,241,234,0.6); }
-  .hero-stats { display:flex; gap:3rem; margin-top:5rem; padding-top:2rem; border-top:0.5px solid var(--border); flex-wrap:wrap; }
-  .stat-num { font-family:var(--font-display); font-size:36px; color:var(--acid); line-height:1; margin-bottom:4px; }
-  .stat-label { font-size:12px; color:var(--muted); letter-spacing:0.06em; text-transform:uppercase; }
+/* ── FORMS ── */
+.form-group{margin-bottom:1rem}
+.form-label{font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);display:block;margin-bottom:6px}
+.form-input{width:100%;background:#0c0c0c;border:0.5px solid var(--border);color:var(--white);padding:10px 14px;font-family:var(--fb);font-size:14px;border-radius:2px;outline:none;transition:border-color 0.15s}
+.form-input:focus{border-color:var(--acid)}
+.form-input.err{border-color:var(--rust)}
+textarea.form-input{resize:vertical;min-height:80px}
+.form-submit{width:100%;background:var(--acid);color:var(--black);border:none;padding:12px;font-family:var(--fb);font-size:14px;font-weight:500;cursor:pointer;border-radius:2px;margin-top:0.5rem;transition:opacity 0.2s}
+.form-submit:hover{opacity:0.85}
+.form-submit:disabled{opacity:0.5;cursor:not-allowed}
+.form-msg{font-family:var(--fm);font-size:11px;margin-top:0.75rem;min-height:18px}
+.form-msg.ok{color:var(--acid)}
+.form-msg.err{color:var(--rust)}
 
-  .section { padding:5rem 2rem; border-top:0.5px solid var(--border); }
-  .section-label { font-family:var(--font-mono); font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted); margin-bottom:0.75rem; }
-  .section-title { font-family:var(--font-display); font-size:clamp(36px,5vw,58px); line-height:1; margin-bottom:3.5rem; max-width:600px; }
-  .section-title em { font-style:normal; color:var(--acid); }
+/* ── HERO ── */
+.hero{min-height:88vh;display:flex;flex-direction:column;justify-content:center;padding:5rem 2rem 4rem;position:relative;overflow:hidden}
+.hero-bg-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:var(--fd);font-size:clamp(120px,22vw,300px);color:rgba(184,240,0,0.025);white-space:nowrap;pointer-events:none;letter-spacing:-0.02em;user-select:none}
+.eyebrow{font-family:var(--fm);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--acid);margin-bottom:1.5rem}
+.eyebrow span{display:inline-block;width:24px;height:1px;background:var(--acid);vertical-align:middle;margin-right:10px}
+h1.hero-title{font-family:var(--fd);font-size:clamp(52px,9vw,110px);line-height:0.94;letter-spacing:0.01em;max-width:820px;margin-bottom:2rem}
+h1.hero-title em{font-style:normal;color:var(--acid)}
+.hero-sub{max-width:480px;color:var(--muted);font-size:16px;font-weight:300;margin-bottom:3rem;line-height:1.7}
+.hero-ctas{display:flex;gap:1rem;align-items:center;flex-wrap:wrap}
+.btn-primary{background:var(--acid);color:var(--black);border:none;padding:14px 32px;font-family:var(--fb);font-size:14px;font-weight:500;cursor:pointer;border-radius:2px;transition:opacity 0.2s}
+.btn-primary:hover{opacity:0.85}
+.btn-ghost{background:transparent;color:var(--white);border:0.5px solid rgba(244,241,234,0.3);padding:14px 32px;font-family:var(--fb);font-size:14px;cursor:pointer;border-radius:2px;transition:border-color 0.2s}
+.btn-ghost:hover{border-color:rgba(244,241,234,0.6)}
+.hero-stats{display:flex;gap:3rem;margin-top:5rem;padding-top:2rem;border-top:0.5px solid var(--border);flex-wrap:wrap}
+.stat-num{font-family:var(--fd);font-size:36px;color:var(--acid);line-height:1;margin-bottom:4px}
+.stat-label{font-size:12px;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase}
 
-  .tiers-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); border:0.5px solid var(--border); border-radius:4px; overflow:hidden; }
-  .tier-card { background:var(--surface); padding:2rem 1.75rem; position:relative; transition:background 0.2s; }
-  .tier-card:hover { background:var(--surface2); }
-  .tier-card.featured { background:#0c1600; border-left:1px solid rgba(184,240,0,0.18); border-right:1px solid rgba(184,240,0,0.18); }
-  .tier-card.featured:hover { background:#101a00; }
-  .tier-card.lowball-card { background:#120d08; }
-  .tier-card.lowball-card:hover { background:#181008; }
-  .tier-badge { display:inline-block; font-family:var(--font-mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; padding:4px 10px; border-radius:2px; margin-bottom:1.5rem; }
-  .badge-exact { background:var(--acid-dim); color:var(--acid); }
-  .badge-entry { background:var(--acid-dim); color:var(--acid); border:0.5px solid rgba(184,240,0,0.35); }
-  .badge-lowball { background:var(--amber-dim); color:var(--amber); border:0.5px solid var(--amber-border); }
-  .tier-name { font-family:var(--font-display); font-size:34px; letter-spacing:0.02em; line-height:1; margin-bottom:0.4rem; }
-  .tier-price-range { font-family:var(--font-mono); font-size:12px; letter-spacing:0.04em; margin-bottom:1.25rem; }
-  .price-green { color:var(--acid); }
-  .price-amber { color:var(--amber); }
-  .tier-desc { font-size:13px; color:var(--muted); line-height:1.65; margin-bottom:1.5rem; }
-  .tier-detail { font-size:12px; color:rgba(244,241,234,0.35); line-height:1.5; font-family:var(--font-mono); letter-spacing:0.02em; }
-  .tier-num { position:absolute; top:1.5rem; right:1.75rem; font-family:var(--font-display); font-size:72px; line-height:1; color:rgba(244,241,234,0.03); pointer-events:none; }
+/* ── SECTIONS (HOME) ── */
+.section{padding:5rem 2rem;border-top:0.5px solid var(--border)}
+.section-label{font-family:var(--fm);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:0.75rem}
+.section-title{font-family:var(--fd);font-size:clamp(36px,5vw,58px);line-height:1;margin-bottom:3.5rem;max-width:600px}
+.section-title em{font-style:normal;color:var(--acid)}
+.tiers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:0.5px solid var(--border);border-radius:4px;overflow:hidden}
+.tier-card{background:var(--surface);padding:2rem 1.75rem;position:relative;transition:background 0.2s}
+.tier-card:hover{background:var(--surface2)}
+.tier-card.featured{background:#0c1600;border-left:1px solid rgba(184,240,0,0.18);border-right:1px solid rgba(184,240,0,0.18)}
+.tier-card.featured:hover{background:#101a00}
+.tier-card.lowball-card{background:#120d08}
+.tier-card.lowball-card:hover{background:#181008}
+.tier-badge{display:inline-block;font-family:var(--fm);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:4px 10px;border-radius:2px;margin-bottom:1.5rem}
+.badge-exact{background:var(--acid-dim);color:var(--acid)}
+.badge-entry{background:var(--acid-dim);color:var(--acid);border:0.5px solid rgba(184,240,0,0.35)}
+.badge-lowball{background:var(--amber-dim);color:var(--amber);border:0.5px solid var(--amber-border)}
+.tier-name{font-family:var(--fd);font-size:34px;letter-spacing:0.02em;line-height:1;margin-bottom:0.4rem}
+.tier-price-range{font-family:var(--fm);font-size:12px;letter-spacing:0.04em;margin-bottom:1.25rem}
+.price-green{color:var(--acid)}
+.price-amber{color:var(--amber)}
+.tier-desc{font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:1.5rem}
+.tier-detail{font-size:12px;color:rgba(244,241,234,0.35);line-height:1.5;font-family:var(--fm);letter-spacing:0.02em}
+.tier-num{position:absolute;top:1.5rem;right:1.75rem;font-family:var(--fd);font-size:72px;line-height:1;color:rgba(244,241,234,0.03);pointer-events:none}
+@media(max-width:720px){.tiers-grid{grid-template-columns:1fr}}
 
-  .why-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
-  .why-item { padding:1.75rem; border:0.5px solid var(--border); border-radius:4px; background:var(--surface); }
-  .why-icon { width:36px; height:36px; background:var(--acid-dim); border-radius:2px; display:flex; align-items:center; justify-content:center; margin-bottom:1rem; }
-  .why-icon svg { width:18px; height:18px; stroke:var(--acid); fill:none; stroke-width:1.5; }
-  .why-title { font-size:15px; font-weight:500; margin-bottom:0.5rem; }
-  .why-desc { font-size:13px; color:var(--muted); line-height:1.65; }
+/* ── EVENTS LIST ── */
+.events-header{padding:3rem 2rem 2rem}
+.events-filter{display:flex;gap:0.5rem;margin-top:1.5rem;flex-wrap:wrap}
+.filter-btn{background:transparent;color:var(--muted);border:0.5px solid var(--border);padding:7px 18px;font-family:var(--fm);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all 0.15s}
+.filter-btn:hover{color:var(--white);border-color:var(--border-md)}
+.filter-btn.active{background:var(--acid);color:var(--black);border-color:var(--acid)}
+.events-search{display:flex;gap:8px;margin-top:1rem}
+.events-search input{flex:1;background:var(--surface);border:0.5px solid var(--border);color:var(--white);padding:8px 14px;font-family:var(--fb);font-size:13px;border-radius:2px;outline:none;transition:border-color 0.15s;max-width:300px}
+.events-search input:focus{border-color:var(--acid)}
+.events-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1px;background:var(--border);border-top:0.5px solid var(--border);border-bottom:0.5px solid var(--border)}
+.event-card{background:var(--surface);padding:1.5rem;cursor:pointer;transition:background 0.15s;position:relative}
+.event-card:hover{background:var(--surface2)}
+.event-type-tag{display:inline-block;font-family:var(--fm);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:3px 8px;border-radius:2px;margin-bottom:1rem}
+.tag-music{background:var(--acid-dim);color:var(--acid)}
+.tag-sports{background:var(--amber-dim);color:var(--amber)}
+.event-artist{font-family:var(--fd);font-size:28px;letter-spacing:0.02em;line-height:1.05;margin-bottom:0.35rem}
+.event-meta{font-family:var(--fm);font-size:11px;color:var(--muted);letter-spacing:0.06em;margin-bottom:1.25rem;line-height:1.6}
+.event-desc{font-size:12px;color:var(--muted);margin-bottom:1rem;line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.event-bid-row{display:flex;align-items:flex-end;justify-content:space-between;padding-top:1rem;border-top:0.5px solid var(--border)}
+.bid-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;font-family:var(--fm)}
+.bid-amount{font-family:var(--fd);font-size:26px;color:var(--acid)}
+.bid-count{font-family:var(--fm);font-size:10px;color:var(--muted);text-align:right}
+.event-timer{font-family:var(--fm);font-size:11px;color:var(--amber);letter-spacing:0.06em}
+.event-hot-badge{position:absolute;top:1rem;right:1rem;background:var(--rust);color:var(--white);font-family:var(--fm);font-size:9px;padding:2px 7px;border-radius:2px;text-transform:uppercase;letter-spacing:0.08em}
+.events-empty{padding:4rem 2rem;text-align:center;color:var(--muted);font-family:var(--fm);font-size:12px}
+.events-skeleton{padding:2rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.5rem}
 
-  /* ── EVENTS ── */
-  .events-header { padding:3rem 2rem 2rem; }
-  .events-filter { display:flex; gap:0.5rem; margin-top:1.5rem; flex-wrap:wrap; }
-  .filter-btn { background:transparent; color:var(--muted); border:0.5px solid var(--border); padding:7px 18px; font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; border-radius:2px; transition:all 0.15s; }
-  .filter-btn:hover { color:var(--white); border-color:var(--border-md); }
-  .filter-btn.active { background:var(--acid); color:var(--black); border-color:var(--acid); }
+/* ── BID PAGE ── */
+.bid-layout{display:grid;grid-template-columns:1fr 380px;min-height:calc(100vh - 56px)}
+.bid-main{padding:3rem 2rem;border-right:0.5px solid var(--border);overflow-y:auto}
+.bid-sidebar{padding:2rem 1.5rem;background:var(--surface);overflow-y:auto;position:sticky;top:56px;max-height:calc(100vh - 56px)}
+.back-btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--fm);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;cursor:pointer;border:none;background:none;padding:0;margin-bottom:2rem;transition:color 0.15s}
+.back-btn:hover{color:var(--white)}
+.event-hero-title{font-family:var(--fd);font-size:clamp(44px,6vw,72px);line-height:0.95;letter-spacing:0.01em;margin-bottom:0.75rem}
+.event-hero-meta{font-family:var(--fm);font-size:12px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:1rem;line-height:1.8}
+.event-hero-desc{font-size:14px;color:var(--muted);margin-bottom:2rem;line-height:1.65;max-width:560px}
+.share-btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--fm);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;cursor:pointer;border:0.5px solid var(--border);background:none;padding:5px 12px;border-radius:2px;transition:all 0.15s;margin-bottom:2rem}
+.share-btn:hover{color:var(--white);border-color:var(--border-md)}
 
-  .events-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1px; background:var(--border); border-top:0.5px solid var(--border); border-bottom:0.5px solid var(--border); }
-  .event-card { background:var(--surface); padding:1.5rem; cursor:pointer; transition:background 0.15s; }
-  .event-card:hover { background:var(--surface2); }
-  .event-type-tag { display:inline-block; font-family:var(--font-mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase; padding:3px 8px; border-radius:2px; margin-bottom:1rem; }
-  .tag-music { background:var(--acid-dim); color:var(--acid); }
-  .tag-sports { background:var(--amber-dim); color:var(--amber); }
-  .event-artist { font-family:var(--font-display); font-size:28px; letter-spacing:0.02em; line-height:1.05; margin-bottom:0.35rem; }
-  .event-meta { font-family:var(--font-mono); font-size:11px; color:var(--muted); letter-spacing:0.06em; margin-bottom:1.25rem; line-height:1.6; }
-  .event-bid-row { display:flex; align-items:flex-end; justify-content:space-between; padding-top:1rem; border-top:0.5px solid var(--border); }
-  .bid-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:2px; font-family:var(--font-mono); }
-  .bid-amount { font-family:var(--font-display); font-size:26px; color:var(--acid); }
-  .bid-count { font-family:var(--font-mono); font-size:10px; color:var(--muted); text-align:right; }
-  .event-timer { font-family:var(--font-mono); font-size:11px; color:var(--amber); letter-spacing:0.06em; }
-  .events-loading { padding:3rem 2rem; color:var(--muted); font-family:var(--font-mono); font-size:12px; }
+/* tier selector */
+.tier-selector{margin-bottom:2rem}
+.tier-selector-label{font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);margin-bottom:0.75rem}
+.tier-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:0.5px solid var(--border);border-radius:3px;overflow:hidden}
+.tier-tab{background:var(--surface);padding:1rem;cursor:pointer;transition:background 0.15s;border:none;color:var(--white);text-align:left;border-bottom:2px solid transparent}
+.tier-tab:hover{background:var(--surface2)}
+.tier-tab.active-exact{background:rgba(184,240,0,0.07);border-bottom-color:var(--acid)}
+.tier-tab.active-amber{background:rgba(245,166,35,0.07);border-bottom-color:var(--amber)}
+.tier-tab-name{font-family:var(--fd);font-size:17px;letter-spacing:0.04em;display:block;margin-bottom:4px}
+.tier-tab-price{font-family:var(--fd);font-size:20px;display:block;margin-bottom:2px}
+.tier-tab-sub{font-family:var(--fm);font-size:9px;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase}
+.price-acid{color:var(--acid)}
+.price-amber-col{color:var(--amber)}
+.tier-info-panel{padding:1.25rem 1.5rem;border:0.5px solid var(--border);border-radius:3px;background:#0c0c0c;margin-bottom:2rem;transition:border-color 0.2s}
+.tier-info-panel.panel-amber{border-color:var(--amber-border)}
+.tier-info-panel.panel-green{border-color:rgba(184,240,0,0.2)}
+.tier-info-title{font-weight:500;margin-bottom:0.35rem;font-size:14px}
+.tier-info-desc{font-size:13px;color:var(--muted);line-height:1.65}
+.tier-info-detail{margin-top:0.75rem;font-family:var(--fm);font-size:11px;line-height:1.5}
+.detail-green{color:rgba(184,240,0,0.6)}
+.detail-amber{color:rgba(245,166,35,0.65)}
 
-  /* ── BID PAGE ── */
-  .bid-layout { display:grid; grid-template-columns:1fr 380px; min-height:calc(100vh - 56px); }
-  .bid-main { padding:3rem 2rem; border-right:0.5px solid var(--border); }
-  .bid-sidebar { padding:2rem 1.5rem; background:var(--surface); }
+/* seat map */
+.seat-map{padding:1.5rem;border:0.5px solid var(--border);border-radius:3px;background:#0c0c0c}
+.seat-map-label{font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:1rem}
+.venue-diagram{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:1rem;width:100%}
+.stage-bar{width:50%;height:26px;background:var(--acid-dim);border:0.5px solid rgba(184,240,0,0.25);border-radius:2px;display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:10px;color:var(--acid);letter-spacing:0.1em;text-transform:uppercase}
+.seat-row{display:flex;gap:5px;width:100%}
+.seat-block{flex:1;padding:0.55rem 0.5rem;border:0.5px solid var(--border);border-radius:2px;cursor:pointer;transition:all 0.15s;text-align:center;background:var(--surface)}
+.seat-block:hover{border-color:var(--border-md);background:var(--surface2)}
+.seat-block.selected{border-color:var(--acid);background:var(--acid-dim)}
+.seat-block.selected-amber{border-color:var(--amber);background:var(--amber-dim)}
+.seat-block-name{font-family:var(--fd);font-size:15px;display:block;margin-bottom:1px}
+.seat-block-detail{font-family:var(--fm);font-size:9px;color:var(--muted);letter-spacing:0.04em}
+.seat-block.selected .seat-block-name{color:var(--acid)}
+.seat-block.selected-amber .seat-block-name{color:var(--amber)}
+.seat-avail{font-family:var(--fm);font-size:10px;color:var(--muted);text-align:center;margin-top:6px}
 
-  .back-btn { display:inline-flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; cursor:pointer; border:none; background:none; padding:0; margin-bottom:2rem; transition:color 0.15s; }
-  .back-btn:hover { color:var(--white); }
-  .event-hero-title { font-family:var(--font-display); font-size:clamp(44px,6vw,72px); line-height:0.95; letter-spacing:0.01em; margin-bottom:0.75rem; }
-  .event-hero-meta { font-family:var(--font-mono); font-size:12px; color:var(--muted); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:3rem; line-height:1.8; }
+/* bid sidebar */
+.sidebar-section{margin-bottom:1.75rem;padding-bottom:1.75rem;border-bottom:0.5px solid var(--border)}
+.sidebar-label{font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);margin-bottom:0.75rem}
+.price-breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:0.75rem}
+.price-pill{padding:0.65rem 0.5rem;border-radius:2px;text-align:center;border:0.5px solid var(--border);cursor:pointer;transition:all 0.15s}
+.price-pill:hover{border-color:var(--border-md)}
+.price-pill.active-green{border-color:rgba(184,240,0,0.4);background:var(--acid-dim)}
+.price-pill.active-amber-pill{border-color:var(--amber-border);background:var(--amber-dim)}
+.pp-label{font-family:var(--fm);font-size:9px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);display:block;margin-bottom:4px}
+.pp-price{font-family:var(--fd);font-size:20px;display:block}
+.pp-green{color:var(--acid)}
+.pp-amber{color:var(--amber)}
+.bid-meta-row{font-family:var(--fm);font-size:11px;color:var(--muted);letter-spacing:0.04em}
+.bid-input-row{display:flex;gap:8px;margin-top:0.75rem}
+.bid-input{flex:1;background:#0c0c0c;border:0.5px solid var(--border);color:var(--white);padding:10px 14px;font-family:var(--fd);font-size:22px;border-radius:2px;outline:none;transition:border-color 0.15s}
+.bid-input:focus{border-color:var(--acid)}
+.bid-input.amber-input:focus{border-color:var(--amber)}
+.place-bid-btn{background:var(--acid);color:var(--black);border:none;padding:0 20px;font-family:var(--fb);font-size:13px;font-weight:500;cursor:pointer;border-radius:2px;transition:opacity 0.2s;white-space:nowrap}
+.place-bid-btn:hover{opacity:0.85}
+.place-bid-btn.amber-btn{background:var(--amber)}
+.place-bid-btn:disabled{opacity:0.4;cursor:not-allowed}
+.bid-increment-row{display:flex;gap:6px;margin-top:8px}
+.increment-btn{background:transparent;border:0.5px solid var(--border);color:var(--muted);padding:5px 10px;font-family:var(--fm);font-size:11px;cursor:pointer;border-radius:2px;transition:all 0.15s}
+.increment-btn:hover{color:var(--white);border-color:var(--border-md)}
+.bid-winning-indicator{font-family:var(--fm);font-size:10px;margin-top:6px;padding:5px 8px;border-radius:2px}
+.bid-winning-indicator.winning{background:rgba(184,240,0,0.1);color:var(--acid)}
+.bid-winning-indicator.losing{background:rgba(201,75,30,0.1);color:var(--rust)}
+.timer-display{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:0.75rem}
+.timer-unit{text-align:center}
+.timer-num{font-family:var(--fd);font-size:32px;color:var(--white);line-height:1;display:block}
+.timer-unit-label{font-family:var(--fm);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em}
+.activity-item{display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0;border-bottom:0.5px solid var(--border);animation:fadeSlide 0.3s ease}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.activity-bidder{font-family:var(--fm);font-size:11px;color:var(--muted)}
+.activity-amount{font-family:var(--fd);font-size:17px;color:var(--white)}
+.activity-tier{font-family:var(--fm);font-size:9px;padding:2px 6px;border-radius:2px}
+.at-exact,.at-entry{background:var(--acid-dim);color:var(--acid)}
+.at-low{background:var(--amber-dim);color:var(--amber)}
+.buy-now-panel{background:rgba(201,75,30,0.07);border:0.5px solid rgba(201,75,30,0.22);border-radius:3px;padding:1.25rem}
+.buy-now-label{font-family:var(--fm);font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--amber);margin-bottom:0.5rem}
+.buy-now-price{font-family:var(--fd);font-size:32px;color:var(--white);margin-bottom:0.5rem}
+.buy-now-desc{font-size:12px;color:var(--muted);margin-bottom:1rem;line-height:1.5}
+.buy-now-btn{width:100%;background:var(--rust);color:var(--white);border:none;padding:11px;font-family:var(--fb);font-size:13px;font-weight:500;cursor:pointer;border-radius:2px;transition:opacity 0.2s}
+.buy-now-btn:hover{opacity:0.85}
+@media(max-width:900px){
+  .bid-layout{grid-template-columns:1fr}
+  .bid-sidebar{position:static;max-height:none;border-top:0.5px solid var(--border)}
+}
 
-  .tier-selector { margin-bottom:2rem; }
-  .tier-selector-label { font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:var(--muted); margin-bottom:0.75rem; }
-  .tier-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); border:0.5px solid var(--border); border-radius:3px; overflow:hidden; }
-  .tier-tab { background:var(--surface); padding:1rem; cursor:pointer; transition:background 0.15s; border:none; color:var(--white); text-align:left; border-bottom:2px solid transparent; }
-  .tier-tab:hover { background:var(--surface2); }
-  .tier-tab.active-exact { background:rgba(184,240,0,0.07); border-bottom-color:var(--acid); }
-  .tier-tab.active-amber { background:rgba(245,166,35,0.07); border-bottom-color:var(--amber); }
-  .tier-tab-name { font-family:var(--font-display); font-size:17px; letter-spacing:0.04em; display:block; margin-bottom:4px; }
-  .tier-tab-price { font-family:var(--font-display); font-size:20px; display:block; margin-bottom:2px; }
-  .tier-tab-sub { font-family:var(--font-mono); font-size:9px; color:var(--muted); letter-spacing:0.08em; text-transform:uppercase; }
-  .price-acid { color:var(--acid); }
-  .price-amber-col { color:var(--amber); }
-
-  .tier-info-panel { padding:1.25rem 1.5rem; border:0.5px solid var(--border); border-radius:3px; background:#0c0c0c; margin-bottom:2rem; transition:border-color 0.2s; }
-  .tier-info-panel.panel-amber { border-color:var(--amber-border); }
-  .tier-info-panel.panel-green { border-color:rgba(184,240,0,0.2); }
-  .tier-info-title { font-weight:500; margin-bottom:0.35rem; font-size:14px; }
-  .tier-info-desc { font-size:13px; color:var(--muted); line-height:1.65; }
-  .tier-info-detail { margin-top:0.75rem; font-family:var(--font-mono); font-size:11px; line-height:1.5; }
-  .detail-green { color:rgba(184,240,0,0.6); }
-  .detail-amber { color:rgba(245,166,35,0.65); }
-
-  .seat-map { padding:1.5rem; border:0.5px solid var(--border); border-radius:3px; background:#0c0c0c; }
-  .seat-map-label { font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:1rem; }
-  .venue-diagram { display:flex; flex-direction:column; align-items:center; gap:6px; margin-bottom:1rem; width:100%; }
-  .stage-bar { width:50%; height:26px; background:var(--acid-dim); border:0.5px solid rgba(184,240,0,0.25); border-radius:2px; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:10px; color:var(--acid); letter-spacing:0.1em; text-transform:uppercase; }
-  .seat-row { display:flex; gap:5px; width:100%; }
-  .seat-block { flex:1; padding:0.55rem 0.5rem; border:0.5px solid var(--border); border-radius:2px; cursor:pointer; transition:all 0.15s; text-align:center; background:var(--surface); }
-  .seat-block:hover { border-color:var(--border-md); background:var(--surface2); }
-  .seat-block.selected { border-color:var(--acid); background:var(--acid-dim); }
-  .seat-block.selected-amber { border-color:var(--amber); background:var(--amber-dim); }
-  .seat-block-name { font-family:var(--font-display); font-size:15px; display:block; margin-bottom:1px; }
-  .seat-block-detail { font-family:var(--font-mono); font-size:9px; color:var(--muted); letter-spacing:0.04em; }
-  .seat-block.selected .seat-block-name { color:var(--acid); }
-  .seat-block.selected-amber .seat-block-name { color:var(--amber); }
-  .seat-avail { font-family:var(--font-mono); font-size:10px; color:var(--muted); text-align:center; margin-top:6px; }
-
-  .sidebar-section { margin-bottom:1.75rem; padding-bottom:1.75rem; border-bottom:0.5px solid var(--border); }
-  .sidebar-label { font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:var(--muted); margin-bottom:0.75rem; }
-
-  .price-breakdown { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:0.75rem; }
-  .price-pill { padding:0.65rem 0.5rem; border-radius:2px; text-align:center; border:0.5px solid var(--border); cursor:pointer; transition:all 0.15s; }
-  .price-pill:hover { border-color:var(--border-md); }
-  .price-pill.active-green { border-color:rgba(184,240,0,0.4); background:var(--acid-dim); }
-  .price-pill.active-amber-pill { border-color:var(--amber-border); background:var(--amber-dim); }
-  .pp-label { font-family:var(--font-mono); font-size:9px; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); display:block; margin-bottom:4px; }
-  .pp-price { font-family:var(--font-display); font-size:20px; display:block; }
-  .pp-green { color:var(--acid); }
-  .pp-amber { color:var(--amber); }
-  .bid-meta-row { font-family:var(--font-mono); font-size:11px; color:var(--muted); letter-spacing:0.04em; }
-
-  .bid-input-row { display:flex; gap:8px; margin-top:0.75rem; }
-  .bid-input { flex:1; background:#0c0c0c; border:0.5px solid var(--border); color:var(--white); padding:10px 14px; font-family:var(--font-display); font-size:22px; border-radius:2px; outline:none; transition:border-color 0.15s; }
-  .bid-input:focus { border-color:var(--acid); }
-  .bid-input.amber-input:focus { border-color:var(--amber); }
-  .place-bid-btn { background:var(--acid); color:var(--black); border:none; padding:0 20px; font-family:var(--font-body); font-size:13px; font-weight:500; letter-spacing:0.04em; cursor:pointer; border-radius:2px; transition:opacity 0.2s; white-space:nowrap; }
-  .place-bid-btn:hover { opacity:0.85; }
-  .place-bid-btn.amber-btn { background:var(--amber); }
-  .place-bid-btn:disabled { opacity:0.4; cursor:not-allowed; }
-  .bid-increment-row { display:flex; gap:6px; margin-top:8px; }
-  .increment-btn { background:transparent; border:0.5px solid var(--border); color:var(--muted); padding:5px 10px; font-family:var(--font-mono); font-size:11px; cursor:pointer; border-radius:2px; transition:all 0.15s; }
-  .increment-btn:hover { color:var(--white); border-color:var(--border-md); }
-
-  .timer-display { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:0.75rem; }
-  .timer-unit { text-align:center; }
-  .timer-num { font-family:var(--font-display); font-size:32px; color:var(--white); line-height:1; display:block; }
-  .timer-unit-label { font-family:var(--font-mono); font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; }
-
-  .activity-item { display:flex; justify-content:space-between; align-items:center; padding:0.5rem 0; border-bottom:0.5px solid var(--border); animation:fadeSlide 0.3s ease; }
-  @keyframes fadeSlide { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
-  .activity-bidder { font-family:var(--font-mono); font-size:11px; color:var(--muted); }
-  .activity-amount { font-family:var(--font-display); font-size:17px; color:var(--white); }
-  .activity-tier { font-family:var(--font-mono); font-size:9px; padding:2px 6px; border-radius:2px; }
-  .at-exact { background:var(--acid-dim); color:var(--acid); }
-  .at-entry { background:var(--acid-dim); color:var(--acid); }
-  .at-low { background:var(--amber-dim); color:var(--amber); }
-
-  .buy-now-panel { background:rgba(201,75,30,0.07); border:0.5px solid rgba(201,75,30,0.22); border-radius:3px; padding:1.25rem; }
-  .buy-now-label { font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--amber); margin-bottom:0.5rem; }
-  .buy-now-price { font-family:var(--font-display); font-size:32px; color:var(--white); margin-bottom:0.5rem; }
-  .buy-now-desc { font-size:12px; color:var(--muted); margin-bottom:1rem; line-height:1.5; }
-  .buy-now-btn { width:100%; background:var(--rust); color:var(--white); border:none; padding:11px; font-family:var(--font-body); font-size:13px; font-weight:500; letter-spacing:0.04em; cursor:pointer; border-radius:2px; transition:opacity 0.2s; }
-  .buy-now-btn:hover { opacity:0.85; }
-
-  .bid-flash { position:fixed; bottom:2rem; right:2rem; background:var(--acid); color:var(--black); padding:12px 20px; border-radius:2px; font-family:var(--font-mono); font-size:12px; letter-spacing:0.06em; opacity:0; pointer-events:none; transition:opacity 0.25s; z-index:200; }
-  .bid-flash.show { opacity:1; }
-  .bid-flash.amber-flash { background:var(--amber); }
-  .bid-flash.error-flash { background:var(--rust); color:var(--white); }
-
-  /* ── AUTH MODAL ── */
-  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:300; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.2s; }
-  .modal-overlay.open { opacity:1; pointer-events:all; }
-  .modal { background:var(--surface); border:0.5px solid var(--border-md); border-radius:4px; padding:2.5rem; width:100%; max-width:420px; margin:1rem; }
-  .modal-title { font-family:var(--font-display); font-size:32px; letter-spacing:0.02em; margin-bottom:0.5rem; }
-  .modal-sub { font-size:13px; color:var(--muted); margin-bottom:2rem; line-height:1.6; }
-  .modal-tabs { display:flex; gap:0; border-bottom:0.5px solid var(--border); margin-bottom:1.75rem; }
-  .modal-tab { background:none; border:none; color:var(--muted); padding:0.5rem 1.25rem 0.75rem; font-family:var(--font-body); font-size:13px; cursor:pointer; border-bottom:2px solid transparent; transition:all 0.15s; }
-  .modal-tab.active { color:var(--white); border-bottom-color:var(--acid); }
-  .form-group { margin-bottom:1rem; }
-  .form-label { font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); display:block; margin-bottom:6px; }
-  .form-input { width:100%; background:#0c0c0c; border:0.5px solid var(--border); color:var(--white); padding:10px 14px; font-family:var(--font-body); font-size:14px; border-radius:2px; outline:none; transition:border-color 0.15s; }
-  .form-input:focus { border-color:var(--acid); }
-  .form-submit { width:100%; background:var(--acid); color:var(--black); border:none; padding:12px; font-family:var(--font-body); font-size:14px; font-weight:500; cursor:pointer; border-radius:2px; margin-top:0.5rem; transition:opacity 0.2s; }
-  .form-submit:hover { opacity:0.85; }
-  .form-submit:disabled { opacity:0.5; cursor:not-allowed; }
-  .form-msg { font-family:var(--font-mono); font-size:11px; margin-top:0.75rem; min-height:18px; }
-  .form-msg.ok { color:var(--acid); }
-  .form-msg.err { color:var(--rust); }
-  .modal-close { position:absolute; top:1rem; right:1rem; background:none; border:none; color:var(--muted); cursor:pointer; font-size:20px; line-height:1; }
-  .modal-close:hover { color:var(--white); }
-
-  @media (max-width:900px) {
-    .bid-layout { grid-template-columns:1fr; }
-    .bid-sidebar { border-top:0.5px solid var(--border); }
-    .tiers-grid { grid-template-columns:1fr; }
-    .why-grid { grid-template-columns:1fr; }
-  }
-
-  /* ── DASHBOARD SHARED ── */
-  .dash-layout { display:grid; grid-template-columns:220px 1fr; min-height:calc(100vh - 56px); }
-  .dash-nav { background:var(--surface); border-right:0.5px solid var(--border); padding:1.5rem 0; }
-  .dash-nav-title { font-family:var(--font-mono); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); padding:0 1.25rem; margin-bottom:0.75rem; }
-  .dash-nav-item { display:flex; align-items:center; gap:10px; padding:0.6rem 1.25rem; cursor:pointer; font-size:13px; color:var(--muted); transition:all 0.15s; border-left:2px solid transparent; }
-  .dash-nav-item:hover { color:var(--white); background:var(--surface2); }
-  .dash-nav-item.active { color:var(--white); border-left-color:var(--acid); background:rgba(184,240,0,0.04); }
-  .dash-nav-item svg { width:14px; height:14px; flex-shrink:0; }
-  .dash-body { padding:2.5rem; overflow-y:auto; }
-  .dash-header { margin-bottom:2rem; }
-  .dash-title { font-family:var(--font-display); font-size:42px; letter-spacing:0.02em; line-height:1; margin-bottom:0.25rem; }
-  .dash-sub { font-size:13px; color:var(--muted); }
-  .dash-section { margin-bottom:2.5rem; }
-  .dash-section-title { font-family:var(--font-mono); font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem; padding-bottom:0.5rem; border-bottom:0.5px solid var(--border); }
-  .dash-tab { display:none; }
-  .dash-tab.active { display:block; }
-  .stat-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:1px; background:var(--border); border:0.5px solid var(--border); border-radius:4px; overflow:hidden; margin-bottom:2rem; }
-  .stat-box { background:var(--surface); padding:1.25rem 1.5rem; }
-  .stat-box-val { font-family:var(--font-display); font-size:32px; color:var(--acid); line-height:1; margin-bottom:4px; }
-  .stat-box-lbl { font-family:var(--font-mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
-  .dash-table { width:100%; border-collapse:collapse; font-size:13px; }
-  .dash-table th { text-align:left; font-family:var(--font-mono); font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); padding:0.5rem 0.75rem; border-bottom:0.5px solid var(--border); }
-  .dash-table td { padding:0.75rem; border-bottom:0.5px solid var(--border); vertical-align:middle; }
-  .dash-table tr:last-child td { border-bottom:none; }
-  .dash-table tr:hover td { background:var(--surface2); }
-  .dash-empty { text-align:center; padding:3rem; color:var(--muted); font-family:var(--font-mono); font-size:12px; }
-  .dash-form { max-width:560px; }
-  .dash-form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
-  .dash-form-row.full { grid-template-columns:1fr; }
-  .dash-field { display:flex; flex-direction:column; gap:5px; }
-  .dash-label { font-family:var(--font-mono); font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); }
-  .dash-input { background:#0c0c0c; border:0.5px solid var(--border); color:var(--white); padding:9px 12px; font-family:var(--font-body); font-size:13px; border-radius:2px; outline:none; transition:border-color 0.15s; width:100%; }
-  .dash-input:focus { border-color:var(--acid); }
-  .dash-select { background:#0c0c0c; border:0.5px solid var(--border); color:var(--white); padding:9px 12px; font-family:var(--font-body); font-size:13px; border-radius:2px; outline:none; width:100%; cursor:pointer; }
-  .dash-btn { background:var(--acid); color:var(--black); border:none; padding:9px 20px; font-family:var(--font-body); font-size:13px; font-weight:500; cursor:pointer; border-radius:2px; transition:opacity 0.2s; }
-  .dash-btn:hover { opacity:0.85; }
-  .dash-btn:disabled { opacity:0.4; cursor:not-allowed; }
-  .dash-btn-ghost { background:transparent; color:var(--muted); border:0.5px solid var(--border); padding:9px 20px; font-family:var(--font-body); font-size:13px; cursor:pointer; border-radius:2px; transition:all 0.15s; }
-  .dash-btn-ghost:hover { color:var(--white); border-color:var(--border-md); }
-  .dash-btn-danger { background:rgba(201,75,30,0.12); color:var(--rust); border:0.5px solid rgba(201,75,30,0.3); padding:6px 14px; font-family:var(--font-body); font-size:12px; cursor:pointer; border-radius:2px; }
-  .dash-msg { font-family:var(--font-mono); font-size:11px; margin-top:0.75rem; min-height:16px; }
-  .dash-msg.ok { color:var(--acid); }
-  .dash-msg.err { color:var(--rust); }
-  .role-badge { display:inline-block; font-family:var(--font-mono); font-size:9px; letter-spacing:0.08em; text-transform:uppercase; padding:2px 8px; border-radius:2px; }
-  .role-attendee { background:var(--acid-dim); color:var(--acid); }
-  .role-promoter { background:var(--amber-dim); color:var(--amber); }
-  .role-admin { background:rgba(201,75,30,0.12); color:var(--rust); }
-  .status-badge { display:inline-block; font-family:var(--font-mono); font-size:9px; padding:2px 8px; border-radius:2px; text-transform:uppercase; letter-spacing:0.06em; }
-  .status-live { background:rgba(184,240,0,0.12); color:var(--acid); }
-  .status-draft { background:rgba(244,241,234,0.06); color:var(--muted); }
-  .section-list { display:flex; flex-direction:column; gap:6px; margin-bottom:1rem; }
-  .section-row { display:flex; align-items:center; gap:8px; padding:0.6rem 0.75rem; background:var(--surface2); border:0.5px solid var(--border); border-radius:3px; }
-  .section-row-name { font-size:13px; flex:1; }
-  .section-row-detail { font-family:var(--font-mono); font-size:10px; color:var(--muted); }
-  .my-bid-card { padding:1.25rem 1.5rem; border:0.5px solid var(--border); border-radius:4px; background:var(--surface); margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; gap:1rem; }
-  .my-bid-event { font-family:var(--font-display); font-size:20px; letter-spacing:0.02em; line-height:1.1; margin-bottom:2px; }
-  .my-bid-meta { font-family:var(--font-mono); font-size:10px; color:var(--muted); letter-spacing:0.04em; }
-  .my-bid-amount { font-family:var(--font-display); font-size:28px; color:var(--acid); text-align:right; }
-  .my-bid-tier { font-family:var(--font-mono); font-size:9px; color:var(--muted); text-align:right; text-transform:uppercase; letter-spacing:0.06em; }
-  @media (max-width:768px) {
-    .dash-layout { grid-template-columns:1fr; }
-    .dash-nav { border-right:none; border-bottom:0.5px solid var(--border); padding:0.75rem 0; display:flex; overflow-x:auto; }
-    .dash-nav-title { display:none; }
-    .dash-nav-item { white-space:nowrap; border-left:none; border-bottom:2px solid transparent; padding:0.5rem 1rem; }
-    .dash-nav-item.active { border-bottom-color:var(--acid); border-left:none; }
-  }
-
+/* ── DASHBOARDS ── */
+.dash-layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 56px)}
+.dash-nav{background:var(--surface);border-right:0.5px solid var(--border);padding:1.5rem 0;overflow-y:auto}
+.dash-nav-title{font-family:var(--fm);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);padding:0 1.25rem;margin-bottom:0.75rem}
+.dash-nav-item{display:flex;align-items:center;gap:10px;padding:0.6rem 1.25rem;cursor:pointer;font-size:13px;color:var(--muted);transition:all 0.15s;border-left:2px solid transparent;user-select:none}
+.dash-nav-item:hover{color:var(--white);background:var(--surface2)}
+.dash-nav-item.active{color:var(--white);border-left-color:var(--acid);background:rgba(184,240,0,0.04)}
+.dash-nav-item svg{width:14px;height:14px;flex-shrink:0}
+.dash-body{padding:2.5rem;overflow-y:auto}
+.dash-header{margin-bottom:2rem;display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.dash-title{font-family:var(--fd);font-size:42px;letter-spacing:0.02em;line-height:1;margin-bottom:0.25rem}
+.dash-sub{font-size:13px;color:var(--muted)}
+.dash-section{margin-bottom:2.5rem}
+.dash-section-title{font-family:var(--fm);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;padding-bottom:0.5rem;border-bottom:0.5px solid var(--border)}
+.dash-tab{display:none}
+.dash-tab.active{display:block}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1px;background:var(--border);border:0.5px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:2rem}
+.stat-box{background:var(--surface);padding:1.25rem 1.5rem}
+.stat-box-val{font-family:var(--fd);font-size:32px;color:var(--acid);line-height:1;margin-bottom:4px}
+.stat-box-lbl{font-family:var(--fm);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em}
+.dash-table{width:100%;border-collapse:collapse;font-size:13px}
+.dash-table th{text-align:left;font-family:var(--fm);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);padding:0.5rem 0.75rem;border-bottom:0.5px solid var(--border)}
+.dash-table td{padding:0.75rem;border-bottom:0.5px solid var(--border);vertical-align:middle}
+.dash-table tr:last-child td{border-bottom:none}
+.dash-table tr:hover td{background:var(--surface2)}
+.dash-empty{text-align:center;padding:3rem;color:var(--muted);font-family:var(--fm);font-size:12px}
+.dash-search{background:var(--surface2);border:0.5px solid var(--border);color:var(--white);padding:7px 12px;font-family:var(--fb);font-size:12px;border-radius:2px;outline:none;transition:border-color 0.15s;width:240px;margin-bottom:1rem}
+.dash-search:focus{border-color:var(--acid)}
+.dash-form{max-width:580px}
+.dash-form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.dash-form-row.full{grid-template-columns:1fr}
+.dash-field{display:flex;flex-direction:column;gap:5px}
+.dash-label{font-family:var(--fm);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted)}
+.dash-input{background:#0c0c0c;border:0.5px solid var(--border);color:var(--white);padding:9px 12px;font-family:var(--fb);font-size:13px;border-radius:2px;outline:none;transition:border-color 0.15s;width:100%}
+.dash-input:focus{border-color:var(--acid)}
+textarea.dash-input{resize:vertical;min-height:70px}
+.dash-select{background:#0c0c0c;border:0.5px solid var(--border);color:var(--white);padding:9px 12px;font-family:var(--fb);font-size:13px;border-radius:2px;outline:none;width:100%;cursor:pointer}
+.dash-btn{background:var(--acid);color:var(--black);border:none;padding:9px 20px;font-family:var(--fb);font-size:13px;font-weight:500;cursor:pointer;border-radius:2px;transition:opacity 0.2s}
+.dash-btn:hover{opacity:0.85}
+.dash-btn:disabled{opacity:0.4;cursor:not-allowed}
+.dash-btn-ghost{background:transparent;color:var(--muted);border:0.5px solid var(--border);padding:9px 20px;font-family:var(--fb);font-size:13px;cursor:pointer;border-radius:2px;transition:all 0.15s}
+.dash-btn-ghost:hover{color:var(--white);border-color:var(--border-md)}
+.dash-btn-sm{background:var(--acid);color:var(--black);border:none;padding:5px 12px;font-family:var(--fb);font-size:11px;font-weight:500;cursor:pointer;border-radius:2px;transition:opacity 0.2s}
+.dash-btn-sm:hover{opacity:0.85}
+.dash-btn-danger{background:rgba(201,75,30,0.12);color:var(--rust);border:0.5px solid rgba(201,75,30,0.3);padding:5px 12px;font-family:var(--fb);font-size:11px;cursor:pointer;border-radius:2px;transition:all 0.15s}
+.dash-btn-danger:hover{background:rgba(201,75,30,0.2)}
+.dash-msg{font-family:var(--fm);font-size:11px;margin-top:0.75rem;min-height:16px}
+.dash-msg.ok{color:var(--acid)}
+.dash-msg.err{color:var(--rust)}
+.role-badge{display:inline-block;font-family:var(--fm);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:2px}
+.role-attendee{background:var(--acid-dim);color:var(--acid)}
+.role-promoter{background:var(--amber-dim);color:var(--amber)}
+.role-admin{background:rgba(201,75,30,0.12);color:var(--rust)}
+.status-badge{display:inline-block;font-family:var(--fm);font-size:9px;padding:2px 8px;border-radius:2px;text-transform:uppercase;letter-spacing:0.06em}
+.status-live{background:rgba(184,240,0,0.12);color:var(--acid)}
+.status-draft{background:rgba(244,241,234,0.06);color:var(--muted)}
+.status-closed{background:rgba(103,101,96,0.2);color:var(--muted)}
+.section-builder-list{display:flex;flex-direction:column;gap:6px;margin-bottom:1rem}
+.section-builder-row{display:flex;align-items:center;gap:8px;padding:0.6rem 0.75rem;background:var(--surface2);border:0.5px solid var(--border);border-radius:3px}
+.section-builder-name{font-size:13px;flex:1}
+.section-builder-detail{font-family:var(--fm);font-size:10px;color:var(--muted)}
+.section-builder-add{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.my-bid-card{padding:1.25rem 1.5rem;border:0.5px solid var(--border);border-radius:4px;background:var(--surface);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:1rem;cursor:pointer;transition:background 0.15s}
+.my-bid-card:hover{background:var(--surface2)}
+.my-bid-event{font-family:var(--fd);font-size:20px;letter-spacing:0.02em;line-height:1.1;margin-bottom:2px}
+.my-bid-meta{font-family:var(--fm);font-size:10px;color:var(--muted);letter-spacing:0.04em}
+.my-bid-amount{font-family:var(--fd);font-size:28px;color:var(--acid);text-align:right}
+.my-bid-tier{font-family:var(--fm);font-size:9px;color:var(--muted);text-align:right;text-transform:uppercase;letter-spacing:0.06em}
+.winner-chip{font-family:var(--fm);font-size:9px;padding:2px 8px;border-radius:2px;text-transform:uppercase;letter-spacing:0.06em;display:inline-block;margin-top:4px}
+.winner-chip.won{background:rgba(184,240,0,0.12);color:var(--acid)}
+.winner-chip.lost{background:rgba(201,75,30,0.1);color:var(--rust)}
+.winner-chip.live{background:rgba(245,166,35,0.13);color:var(--amber)}
+.event-edit-form{background:var(--surface2);border:0.5px solid var(--border);border-radius:4px;padding:1.5rem;margin-top:1rem}
+.event-winners-list{display:flex;flex-direction:column;gap:6px}
+.event-winner-row{display:flex;align-items:center;gap:10px;padding:0.75rem;background:var(--surface);border:0.5px solid var(--border);border-radius:3px}
+.event-winner-email{font-family:var(--fm);font-size:11px;flex:1}
+.event-winner-tier{font-size:11px;color:var(--muted)}
+.event-winner-amount{font-family:var(--fd);font-size:18px;color:var(--acid)}
+@media(max-width:768px){
+  .dash-layout{grid-template-columns:1fr}
+  .dash-nav{border-right:none;border-bottom:0.5px solid var(--border);padding:0.75rem 0;display:flex;overflow-x:auto}
+  .dash-nav-title{display:none}
+  .dash-nav-item{white-space:nowrap;border-left:none;border-bottom:2px solid transparent;padding:0.5rem 1rem}
+  .dash-nav-item.active{border-bottom-color:var(--acid);border-left:none}
+  .dash-form-row{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
 
+<!-- NAV -->
 <nav>
-  <div class="logo">AUCKETS</div>
+  <div class="logo" onclick="showPage('home')">AUCKETS</div>
   <div class="nav-links" id="nav-links">
     <a onclick="showPage('home');closeNav()" id="nav-home" class="active">Home</a>
     <a onclick="showPage('events');closeNav()" id="nav-events">Events</a>
@@ -342,7 +356,7 @@
 
 <!-- AUTH MODAL -->
 <div class="modal-overlay" id="auth-modal">
-  <div class="modal" style="position:relative">
+  <div class="modal">
     <button class="modal-close" onclick="closeModal()">×</button>
     <div class="modal-title">AUCKETS</div>
     <div class="modal-sub">Bid fair. Win real. No bots, no scalpers.</div>
@@ -351,33 +365,21 @@
       <button class="modal-tab" onclick="switchAuthTab('login',this)">Log in</button>
     </div>
     <div id="auth-form-signup">
-      <div class="form-group">
-        <label class="form-label">Email</label>
-        <input class="form-input" type="email" id="signup-email" placeholder="you@example.com">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Password</label>
-        <input class="form-input" type="password" id="signup-pass" placeholder="Min 6 characters">
-      </div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="signup-email" placeholder="you@example.com"></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="signup-pass" placeholder="Min 6 characters"></div>
       <button class="form-submit" id="signup-btn" onclick="doSignup()">Create account</button>
       <div class="form-msg" id="signup-msg"></div>
     </div>
     <div id="auth-form-login" style="display:none">
-      <div class="form-group">
-        <label class="form-label">Email</label>
-        <input class="form-input" type="email" id="login-email" placeholder="you@example.com">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Password</label>
-        <input class="form-input" type="password" id="login-pass" placeholder="Your password">
-      </div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="login-email" placeholder="you@example.com"></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="login-pass" placeholder="Your password"></div>
       <button class="form-submit" id="login-btn" onclick="doLogin()">Log in</button>
       <div class="form-msg" id="login-msg"></div>
     </div>
   </div>
 </div>
 
-<!-- HOME -->
+<!-- HOME PAGE -->
 <div id="page-home" class="page active">
   <section class="hero">
     <div class="hero-bg-text">AUCKETS</div>
@@ -394,7 +396,6 @@
       <div><div class="stat-num">100%</div><div class="stat-label">Refund if outbid</div></div>
     </div>
   </section>
-
   <section class="section">
     <p class="section-label">How it works</p>
     <div class="section-title">Three tiers.<br><em>One shot.</em></div>
@@ -424,38 +425,43 @@
         <div class="tier-detail">In or refunded — 72 hrs before doors. No limbo.</div>
       </div>
     </div>
-    <div style="margin-top:2rem;text-align:center;">
-      <button class="btn-primary" onclick="showPage('events')">See live auctions</button>
-    </div>
+    <div style="margin-top:2rem;text-align:center"><button class="btn-primary" onclick="showPage('events')">See live auctions</button></div>
   </section>
 </div>
 
-<!-- EVENTS -->
+<!-- EVENTS PAGE -->
 <div id="page-events" class="page">
   <div class="events-header">
     <p class="section-label">Live auctions</p>
-    <div class="section-title" style="margin-bottom:1.5rem;">Upcoming <em>events</em></div>
+    <div class="section-title" style="margin-bottom:1.5rem">Upcoming <em>events</em></div>
     <div class="events-filter">
       <button class="filter-btn active" onclick="filterEvents(this,'all')">All</button>
       <button class="filter-btn" onclick="filterEvents(this,'music')">Music</button>
       <button class="filter-btn" onclick="filterEvents(this,'sports')">Sports</button>
       <button class="filter-btn" onclick="filterEvents(this,'hot')">Ending soon</button>
     </div>
+    <div class="events-search">
+      <input type="text" id="events-search-input" placeholder="Search events, venues, cities…" oninput="searchEvents(this.value)">
+    </div>
   </div>
   <div class="events-grid" id="events-grid">
-    <div class="events-loading">Loading events…</div>
+    <div class="events-empty">Loading events…</div>
   </div>
 </div>
 
-<!-- BIDDING -->
+<!-- BID PAGE -->
 <div id="page-bid" class="page">
   <div class="bid-layout">
     <div class="bid-main">
       <button class="back-btn" onclick="showPage('events')">← Back to events</button>
-      <span id="bid-event-tag" class="event-type-tag tag-music" style="display:inline-block;margin-bottom:1rem;"></span>
+      <span id="bid-event-tag" class="event-type-tag tag-music" style="display:inline-block;margin-bottom:1rem"></span>
       <div class="event-hero-title" id="bid-event-title"></div>
       <div class="event-hero-meta" id="bid-event-meta"></div>
-
+      <div class="event-hero-desc" id="bid-event-desc"></div>
+      <button class="share-btn" onclick="shareEvent()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Share event
+      </button>
       <div class="tier-selector">
         <div class="tier-selector-label">Choose your tier</div>
         <div class="tier-tabs">
@@ -476,70 +482,33 @@
           </button>
         </div>
       </div>
-
       <div class="tier-info-panel panel-green" id="tier-info-panel">
         <div class="tier-info-title" id="tier-info-title">Exact seat auction</div>
-        <div class="tier-info-desc" id="tier-info-desc">You're bidding on a specific seat. Highest bid wins — winner-take-all. If you're outbid, your funds are returned immediately.</div>
+        <div class="tier-info-desc" id="tier-info-desc">You're bidding on a specific seat. Highest bid wins. If you're outbid, your funds are returned immediately.</div>
         <div class="tier-info-detail detail-green" id="tier-info-detail">→ Outbid? Your money comes back instantly. No holds, no delays.</div>
       </div>
-
-      <div class="seat-map">
+      <div class="seat-map" id="seat-map-container">
         <div class="seat-map-label">Select section</div>
-        <div class="venue-diagram">
-          <div class="stage-bar">Stage</div>
-          <div class="seat-row">
-            <div class="seat-block selected" onclick="selectSeat(this,'Floor GA')" data-section="Floor GA" data-selected="true">
-              <span class="seat-block-name">Floor</span>
-              <span class="seat-block-detail">GA · Standing</span>
-            </div>
-          </div>
-          <div class="seat-row">
-            <div class="seat-block" onclick="selectSeat(this,'Sec 101')" data-section="Sec 101"><span class="seat-block-name">101</span><span class="seat-block-detail">Rows 1–8</span></div>
-            <div class="seat-block" onclick="selectSeat(this,'Sec 102')" data-section="Sec 102"><span class="seat-block-name">102</span><span class="seat-block-detail">Rows 1–8</span></div>
-            <div class="seat-block" onclick="selectSeat(this,'Sec 103')" data-section="Sec 103"><span class="seat-block-name">103</span><span class="seat-block-detail">Rows 1–8</span></div>
-            <div class="seat-block" onclick="selectSeat(this,'Sec 104')" data-section="Sec 104"><span class="seat-block-name">104</span><span class="seat-block-detail">Rows 1–8</span></div>
-          </div>
-          <div class="seat-row">
-            <div class="seat-block" onclick="selectSeat(this,'Sec 201')" data-section="Sec 201"><span class="seat-block-name">201</span><span class="seat-block-detail">Rows 9–20</span></div>
-            <div class="seat-block" onclick="selectSeat(this,'Sec 202')" data-section="Sec 202"><span class="seat-block-name">202</span><span class="seat-block-detail">Rows 9–20</span></div>
-            <div class="seat-block" onclick="selectSeat(this,'Sec 203')" data-section="Sec 203"><span class="seat-block-name">203</span><span class="seat-block-detail">Rows 9–20</span></div>
-            <div class="seat-block" onclick="selectSeat(this,'Sec 204')" data-section="Sec 204"><span class="seat-block-name">204</span><span class="seat-block-detail">Rows 9–20</span></div>
-          </div>
-          <div class="seat-row">
-            <div class="seat-block" onclick="selectSeat(this,'Upper 301')" data-section="Upper 301"><span class="seat-block-name">301</span><span class="seat-block-detail">Upper deck</span></div>
-            <div class="seat-block" onclick="selectSeat(this,'Upper 302')" data-section="Upper 302"><span class="seat-block-name">302</span><span class="seat-block-detail">Upper deck</span></div>
-            <div class="seat-block" onclick="selectSeat(this,'Upper 303')" data-section="Upper 303"><span class="seat-block-name">303</span><span class="seat-block-detail">Upper deck</span></div>
-            <div class="seat-block" onclick="selectSeat(this,'Upper 304')" data-section="Upper 304"><span class="seat-block-name">304</span><span class="seat-block-detail">Upper deck</span></div>
-          </div>
+        <div class="venue-diagram" id="venue-diagram">
+          <div class="events-empty" style="padding:1rem">Loading sections…</div>
         </div>
-        <div class="seat-avail" id="seat-avail">Floor GA selected</div>
+        <div class="seat-avail" id="seat-avail">Select a section</div>
       </div>
     </div>
-
     <div class="bid-sidebar">
       <div class="sidebar-section">
         <div class="sidebar-label">Top bid by tier</div>
         <div class="price-breakdown">
-          <div class="price-pill active-green" onclick="selectTierFromPill('exact')" id="pill-exact">
-            <span class="pp-label">Lock it in</span>
-            <span class="pp-price pp-green" id="pill-price-exact">—</span>
-          </div>
-          <div class="price-pill" onclick="selectTierFromPill('entry')" id="pill-entry">
-            <span class="pp-label">Get in</span>
-            <span class="pp-price pp-green" id="pill-price-entry">—</span>
-          </div>
-          <div class="price-pill" onclick="selectTierFromPill('lowball')" id="pill-lowball">
-            <span class="pp-label">Standby</span>
-            <span class="pp-price pp-amber" id="pill-price-lowball">—</span>
-          </div>
+          <div class="price-pill active-green" onclick="selectTierFromPill('exact')" id="pill-exact"><span class="pp-label">Lock it in</span><span class="pp-price pp-green" id="pill-price-exact">—</span></div>
+          <div class="price-pill" onclick="selectTierFromPill('entry')" id="pill-entry"><span class="pp-label">Get in</span><span class="pp-price pp-green" id="pill-price-entry">—</span></div>
+          <div class="price-pill" onclick="selectTierFromPill('lowball')" id="pill-lowball"><span class="pp-label">Standby</span><span class="pp-price pp-amber" id="pill-price-lowball">—</span></div>
         </div>
         <div class="bid-meta-row" id="bid-meta-row">— bids · auction live</div>
       </div>
-
       <div class="sidebar-section">
         <div class="sidebar-label" id="bid-input-label">Your bid — Lock it in</div>
         <div class="bid-input-row">
-          <input class="bid-input" id="bid-input" type="number" placeholder="$0" min="0">
+          <input class="bid-input" id="bid-input" type="number" placeholder="$0" min="1">
           <button class="place-bid-btn" id="place-bid-btn" onclick="placeBid()">Bid now</button>
         </div>
         <div class="bid-increment-row">
@@ -548,8 +517,8 @@
           <button class="increment-btn" onclick="addAmount(50)">+$50</button>
           <button class="increment-btn" onclick="addAmount(100)">+$100</button>
         </div>
+        <div class="bid-winning-indicator" id="bid-winning-indicator" style="display:none"></div>
       </div>
-
       <div class="sidebar-section">
         <div class="sidebar-label">Auction closes in</div>
         <div class="timer-display">
@@ -558,17 +527,15 @@
           <div class="timer-unit"><span class="timer-num" id="timer-s">00</span><span class="timer-unit-label">sec</span></div>
         </div>
       </div>
-
       <div class="sidebar-section">
         <div class="sidebar-label">Live activity</div>
         <div id="activity-feed"></div>
       </div>
-
       <div class="buy-now-panel">
         <div class="buy-now-label">Skip the auction</div>
         <div class="buy-now-price" id="buy-now-price">—</div>
-        <div class="buy-now-desc">Guaranteed floor access. No waiting, no bidding. Premium price, zero uncertainty.</div>
-        <button class="buy-now-btn" onclick="showFlash('Buy Now coming soon — payments not live yet','error-flash')">Buy now — guaranteed</button>
+        <div class="buy-now-desc">Guaranteed entry. No waiting, no bidding. Premium price, zero uncertainty.</div>
+        <button class="buy-now-btn" onclick="toast('Payments coming soon — stay tuned!','amber')">Buy now — guaranteed</button>
       </div>
     </div>
   </div>
@@ -576,58 +543,57 @@
 
 <!-- HOW IT WORKS -->
 <div id="page-how" class="page">
-  <div style="padding:3rem 2rem;">
+  <div style="padding:3rem 2rem;max-width:700px">
     <p class="section-label">How it works</p>
-    <div class="section-title" style="margin-bottom:3rem;">Three tiers.<br><em>One platform.</em></div>
-    <div style="max-width:640px;">
-      <div style="margin-bottom:2.5rem;padding-bottom:2.5rem;border-bottom:0.5px solid var(--border);display:flex;gap:1.5rem;align-items:flex-start;">
-        <div style="font-family:var(--font-display);font-size:48px;color:var(--acid);line-height:1;min-width:48px;">1</div>
+    <div class="section-title" style="margin-bottom:3rem">Three tiers.<br><em>One platform.</em></div>
+    <div style="display:flex;flex-direction:column;gap:0">
+      <div style="padding-bottom:2.5rem;margin-bottom:2.5rem;border-bottom:0.5px solid var(--border);display:flex;gap:1.5rem;align-items:flex-start">
+        <div style="font-family:var(--fd);font-size:48px;color:var(--acid);line-height:1;min-width:48px">1</div>
         <div>
-          <div style="font-family:var(--font-display);font-size:24px;margin-bottom:0.25rem;">LOCK IT IN — Exact seat auction</div>
-          <div style="font-family:var(--font-mono);font-size:11px;color:var(--acid);margin-bottom:0.75rem;">$200 – $600+ · market rate</div>
-          <div style="color:var(--muted);font-size:14px;line-height:1.7;">Bid on a specific seat. The highest bidder wins. Simple, transparent, no hidden secondary market. If you're outbid, your money is returned immediately.</div>
+          <div style="font-family:var(--fd);font-size:24px;margin-bottom:0.25rem">LOCK IT IN — Exact seat auction</div>
+          <div style="font-family:var(--fm);font-size:11px;color:var(--acid);margin-bottom:0.75rem">$200 – $600+ · market rate</div>
+          <div style="color:var(--muted);font-size:14px;line-height:1.7">Bid on a specific seat. The highest bidder wins. Simple, transparent, no hidden secondary market. If you're outbid, your money is returned immediately.</div>
         </div>
       </div>
-      <div style="margin-bottom:2.5rem;padding-bottom:2.5rem;border-bottom:0.5px solid var(--border);display:flex;gap:1.5rem;align-items:flex-start;">
-        <div style="font-family:var(--font-display);font-size:48px;color:var(--acid);line-height:1;min-width:48px;">2</div>
+      <div style="padding-bottom:2.5rem;margin-bottom:2.5rem;border-bottom:0.5px solid var(--border);display:flex;gap:1.5rem;align-items:flex-start">
+        <div style="font-family:var(--fd);font-size:48px;color:var(--acid);line-height:1;min-width:48px">2</div>
         <div>
-          <div style="font-family:var(--font-display);font-size:24px;margin-bottom:0.25rem;">GET IN — Guaranteed entry</div>
-          <div style="font-family:var(--font-mono);font-size:11px;color:var(--acid);margin-bottom:0.75rem;">$80 – $350 · entry pool</div>
-          <div style="color:var(--muted);font-size:14px;line-height:1.7;">You're bidding for access, not a specific seat. If someone outbids you on section, you still get in — just a different spot. Your entry is guaranteed.</div>
+          <div style="font-family:var(--fd);font-size:24px;margin-bottom:0.25rem">GET IN — Guaranteed entry</div>
+          <div style="font-family:var(--fm);font-size:11px;color:var(--acid);margin-bottom:0.75rem">$80 – $350 · entry pool</div>
+          <div style="color:var(--muted);font-size:14px;line-height:1.7">You're bidding for access, not a specific seat. If someone outbids you on section, you still get in — just a different spot. Your entry is guaranteed.</div>
         </div>
       </div>
-      <div style="margin-bottom:2.5rem;padding-bottom:2.5rem;border-bottom:0.5px solid var(--border);display:flex;gap:1.5rem;align-items:flex-start;">
-        <div style="font-family:var(--font-display);font-size:48px;color:var(--amber);line-height:1;min-width:48px;">3</div>
+      <div style="padding-bottom:2.5rem;margin-bottom:2.5rem;border-bottom:0.5px solid var(--border);display:flex;gap:1.5rem;align-items:flex-start">
+        <div style="font-family:var(--fd);font-size:48px;color:var(--amber);line-height:1;min-width:48px">3</div>
         <div>
-          <div style="font-family:var(--font-display);font-size:24px;margin-bottom:0.25rem;">SHOOT YOUR SHOT — Lowball standby</div>
-          <div style="font-family:var(--font-mono);font-size:11px;color:var(--amber);margin-bottom:0.75rem;">$15 – $80 · standby bid</div>
-          <div style="color:var(--muted);font-size:14px;line-height:1.7;">Put in a low bid and find out 72 hours before the show. If seats remain and your bid clears the threshold, you're in. Otherwise, full refund.</div>
+          <div style="font-family:var(--fd);font-size:24px;margin-bottom:0.25rem">SHOOT YOUR SHOT — Lowball standby</div>
+          <div style="font-family:var(--fm);font-size:11px;color:var(--amber);margin-bottom:0.75rem">$15 – $80 · standby bid</div>
+          <div style="color:var(--muted);font-size:14px;line-height:1.7">Put in a low bid and find out 72 hours before the show. If seats remain and your bid clears the threshold, you're in. Otherwise, full refund.</div>
         </div>
       </div>
-      <div style="display:flex;gap:1.5rem;align-items:flex-start;">
-        <div style="font-family:var(--font-display);font-size:48px;color:var(--rust);line-height:1;min-width:48px;">+</div>
+      <div style="display:flex;gap:1.5rem;align-items:flex-start">
+        <div style="font-family:var(--fd);font-size:48px;color:var(--rust);line-height:1;min-width:48px">+</div>
         <div>
-          <div style="font-family:var(--font-display);font-size:24px;margin-bottom:0.25rem;">BUY NOW — Premium guaranteed</div>
-          <div style="font-family:var(--font-mono);font-size:11px;color:#e07a4a;margin-bottom:0.75rem;">Fixed price · skip the auction entirely</div>
-          <div style="color:var(--muted);font-size:14px;line-height:1.7;">Every event has a buy-now option at a premium. Skip the auction entirely, know your seat, move on with your life.</div>
+          <div style="font-family:var(--fd);font-size:24px;margin-bottom:0.25rem">BUY NOW — Premium guaranteed</div>
+          <div style="font-family:var(--fm);font-size:11px;color:#e07a4a;margin-bottom:0.75rem">Fixed price · skip the auction entirely</div>
+          <div style="color:var(--muted);font-size:14px;line-height:1.7">Every event has a buy-now option at a premium. Skip the auction entirely, know your seat, move on with your life.</div>
         </div>
       </div>
     </div>
-    <div style="margin-top:3rem;"><button class="btn-primary" onclick="showPage('events')">See live auctions</button></div>
+    <div style="margin-top:3rem"><button class="btn-primary" onclick="showPage('events')">See live auctions</button></div>
   </div>
 </div>
-
 
 <!-- MY BIDS PAGE -->
 <div id="page-mybids" class="page">
   <div class="dash-layout">
     <div class="dash-nav">
       <div class="dash-nav-title">My Account</div>
-      <div class="dash-nav-item active" onclick="switchMyBidsTab('bids',this)">
+      <div class="dash-nav-item active" onclick="switchDashTab('mybids','bids',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
         My Bids
       </div>
-      <div class="dash-nav-item" onclick="switchMyBidsTab('account',this)">
+      <div class="dash-nav-item" onclick="switchDashTab('mybids','account',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
         Account
       </div>
@@ -635,10 +601,9 @@
     <div class="dash-body">
       <div class="dash-tab active" id="mybids-tab-bids">
         <div class="dash-header">
-          <div class="dash-title">MY BIDS</div>
-          <div class="dash-sub">All your active and past bids</div>
+          <div><div class="dash-title">MY BIDS</div><div class="dash-sub">All your active and past bids</div></div>
         </div>
-        <div class="stat-row" id="mybids-stats">
+        <div class="stat-row">
           <div class="stat-box"><div class="stat-box-val" id="stat-total-bids">—</div><div class="stat-box-lbl">Total bids</div></div>
           <div class="stat-box"><div class="stat-box-val" id="stat-active-bids">—</div><div class="stat-box-lbl">Active auctions</div></div>
           <div class="stat-box"><div class="stat-box-val" id="stat-top-bid">—</div><div class="stat-box-lbl">Highest bid</div></div>
@@ -646,13 +611,10 @@
         <div id="mybids-list"><div class="dash-empty">Loading your bids…</div></div>
       </div>
       <div class="dash-tab" id="mybids-tab-account">
-        <div class="dash-header">
-          <div class="dash-title">ACCOUNT</div>
-          <div class="dash-sub" id="mybids-account-email"></div>
-        </div>
+        <div class="dash-header"><div><div class="dash-title">ACCOUNT</div><div class="dash-sub" id="mybids-account-email"></div></div></div>
         <div class="dash-section">
           <div class="dash-section-title">Your role</div>
-          <div id="mybids-role-display" style="margin-bottom:1rem;"></div>
+          <div id="mybids-role-display"></div>
         </div>
         <div class="dash-section">
           <div class="dash-section-title">Actions</div>
@@ -668,121 +630,94 @@
   <div class="dash-layout">
     <div class="dash-nav">
       <div class="dash-nav-title">Promoter</div>
-      <div class="dash-nav-item active" onclick="switchPromoterTab('events',this)">
+      <div class="dash-nav-item active" onclick="switchDashTab('promoter','events',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
         My Events
       </div>
-      <div class="dash-nav-item" onclick="switchPromoterTab('create',this)">
+      <div class="dash-nav-item" onclick="switchDashTab('promoter','create',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
         Create Event
       </div>
-      <div class="dash-nav-item" onclick="switchPromoterTab('bids',this)">
+      <div class="dash-nav-item" onclick="switchDashTab('promoter','bids',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M13 2v7h7"/></svg>
         Bid Reports
       </div>
     </div>
     <div class="dash-body">
 
-      <!-- My Events tab -->
+      <!-- My Events -->
       <div class="dash-tab active" id="promoter-tab-events">
-        <div class="dash-header">
-          <div class="dash-title">MY EVENTS</div>
-          <div class="dash-sub">Manage your listings</div>
-        </div>
+        <div class="dash-header"><div><div class="dash-title">MY EVENTS</div><div class="dash-sub">Click an event to edit it</div></div></div>
         <div id="promoter-events-list"><div class="dash-empty">Loading…</div></div>
+        <!-- Inline edit panel -->
+        <div id="promoter-edit-panel" style="display:none">
+          <div class="dash-section-title" style="margin-top:2rem">Editing: <span id="edit-event-name"></span></div>
+          <div class="event-edit-form">
+            <div class="dash-form-row"><div class="dash-field"><label class="dash-label">Artist / Event name</label><input class="dash-input" id="edit-artist"></div><div class="dash-field"><label class="dash-label">Type</label><select class="dash-select" id="edit-type"><option value="music">Music</option><option value="sports">Sports</option></select></div></div>
+            <div class="dash-form-row"><div class="dash-field"><label class="dash-label">Venue</label><input class="dash-input" id="edit-venue"></div><div class="dash-field"><label class="dash-label">City</label><input class="dash-input" id="edit-city"></div></div>
+            <div class="dash-form-row"><div class="dash-field"><label class="dash-label">Event date</label><input class="dash-input" id="edit-date"></div><div class="dash-field"><label class="dash-label">Auction closes at</label><input class="dash-input" type="datetime-local" id="edit-closes"></div></div>
+            <div class="dash-form-row"><div class="dash-field"><label class="dash-label">Buy now price ($)</label><input class="dash-input" type="number" id="edit-buynow"></div><div class="dash-field" style="justify-content:flex-end"><label class="dash-label">Published</label><label style="display:flex;align-items:center;gap:8px;margin-top:6px;cursor:pointer;font-size:13px;color:var(--muted)"><input type="checkbox" id="edit-published" style="accent-color:var(--acid);width:16px;height:16px"> Live</label></div></div>
+            <div class="dash-form-row full"><div class="dash-field"><label class="dash-label">Description</label><textarea class="dash-input" id="edit-desc" placeholder="Tell people about this event…"></textarea></div></div>
+            <!-- Section editor -->
+            <div class="dash-section-title" style="margin-top:1rem">Sections</div>
+            <div class="section-builder-list" id="edit-sections-list"></div>
+            <div class="section-builder-add">
+              <input class="dash-input" id="edit-sec-name" placeholder="Section name" style="flex:1;min-width:100px">
+              <input class="dash-input" id="edit-sec-detail" placeholder="Detail" style="flex:1;min-width:100px">
+              <input class="dash-input" id="edit-sec-cap" type="number" placeholder="Capacity" style="width:90px">
+              <button class="dash-btn-ghost" onclick="addEditSection()">+ Add</button>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:1.25rem;flex-wrap:wrap">
+              <button class="dash-btn" onclick="saveEventEdit()">Save changes</button>
+              <button class="dash-btn-ghost" onclick="cancelEventEdit()">Cancel</button>
+              <button class="dash-btn-danger" onclick="deleteEvent()" style="margin-left:auto">Delete event</button>
+            </div>
+            <div class="dash-msg" id="edit-msg"></div>
+          </div>
+          <!-- Winners section -->
+          <div id="edit-winners-section" style="display:none;margin-top:2rem">
+            <div class="dash-section-title">Auction Results</div>
+            <div class="event-winners-list" id="edit-winners-list"></div>
+          </div>
+        </div>
       </div>
 
-      <!-- Create Event tab -->
+      <!-- Create Event -->
       <div class="dash-tab" id="promoter-tab-create">
-        <div class="dash-header">
-          <div class="dash-title">CREATE EVENT</div>
-          <div class="dash-sub">List a new auction</div>
-        </div>
+        <div class="dash-header"><div><div class="dash-title">CREATE EVENT</div><div class="dash-sub">List a new auction</div></div></div>
         <div class="dash-form">
-          <div class="dash-form-row">
-            <div class="dash-field">
-              <label class="dash-label">Artist / Event name</label>
-              <input class="dash-input" id="ce-artist" placeholder="e.g. Taylor Swift">
-            </div>
-            <div class="dash-field">
-              <label class="dash-label">Type</label>
-              <select class="dash-select" id="ce-type">
-                <option value="music">Music</option>
-                <option value="sports">Sports</option>
-              </select>
-            </div>
+          <div class="dash-form-row"><div class="dash-field"><label class="dash-label">Artist / Event name</label><input class="dash-input" id="ce-artist" placeholder="e.g. Taylor Swift"></div><div class="dash-field"><label class="dash-label">Type</label><select class="dash-select" id="ce-type"><option value="music">Music</option><option value="sports">Sports</option></select></div></div>
+          <div class="dash-form-row"><div class="dash-field"><label class="dash-label">Venue name</label><input class="dash-input" id="ce-venue" placeholder="e.g. Madison Square Garden"></div><div class="dash-field"><label class="dash-label">City, State</label><input class="dash-input" id="ce-city" placeholder="e.g. New York, NY"></div></div>
+          <div class="dash-form-row"><div class="dash-field"><label class="dash-label">Event date (display)</label><input class="dash-input" id="ce-date" placeholder="e.g. Jun 14, 2025"></div><div class="dash-field"><label class="dash-label">Auction closes at</label><input class="dash-input" id="ce-closes" type="datetime-local"></div></div>
+          <div class="dash-form-row"><div class="dash-field"><label class="dash-label">Buy now price ($)</label><input class="dash-input" id="ce-buynow" type="number" placeholder="e.g. 500"></div><div class="dash-field" style="justify-content:flex-end"><label class="dash-label">Publish immediately</label><label style="display:flex;align-items:center;gap:8px;margin-top:6px;cursor:pointer;font-size:13px;color:var(--muted)"><input type="checkbox" id="ce-publish" style="accent-color:var(--acid);width:16px;height:16px"> Make live on save</label></div></div>
+          <div class="dash-form-row full"><div class="dash-field"><label class="dash-label">Description</label><textarea class="dash-input" id="ce-desc" placeholder="Tell people about this event…"></textarea></div></div>
+          <div class="dash-section-title" style="margin-top:0.5rem">Venue Sections</div>
+          <div class="section-builder-list" id="ce-sections-list"></div>
+          <div class="section-builder-add" style="margin-bottom:1.5rem">
+            <input class="dash-input" id="ce-sec-name" placeholder="Section name" style="flex:1;min-width:100px">
+            <input class="dash-input" id="ce-sec-detail" placeholder="Detail (e.g. Rows 1–8)" style="flex:1;min-width:100px">
+            <input class="dash-input" id="ce-sec-cap" type="number" placeholder="Capacity" style="width:90px">
+            <button class="dash-btn-ghost" onclick="addCreateSection()">+ Add</button>
           </div>
-          <div class="dash-form-row">
-            <div class="dash-field">
-              <label class="dash-label">Venue</label>
-              <input class="dash-input" id="ce-venue" placeholder="e.g. Madison Square Garden">
-            </div>
-            <div class="dash-field">
-              <label class="dash-label">City</label>
-              <input class="dash-input" id="ce-city" placeholder="e.g. New York, NY">
-            </div>
-          </div>
-          <div class="dash-form-row">
-            <div class="dash-field">
-              <label class="dash-label">Event date</label>
-              <input class="dash-input" id="ce-date" placeholder="e.g. Jun 14, 2025">
-            </div>
-            <div class="dash-field">
-              <label class="dash-label">Auction closes at</label>
-              <input class="dash-input" id="ce-closes" type="datetime-local">
-            </div>
-          </div>
-          <div class="dash-form-row">
-            <div class="dash-field">
-              <label class="dash-label">Buy now price ($)</label>
-              <input class="dash-input" id="ce-buynow" type="number" placeholder="e.g. 500">
-            </div>
-            <div class="dash-field" style="justify-content:flex-end;">
-              <label class="dash-label">Publish immediately</label>
-              <label style="display:flex;align-items:center;gap:8px;margin-top:6px;cursor:pointer;font-size:13px;color:var(--muted)">
-                <input type="checkbox" id="ce-publish" style="accent-color:var(--acid);width:16px;height:16px;">
-                Make live on save
-              </label>
-            </div>
-          </div>
-
-          <!-- Sections builder -->
-          <div class="dash-section-title" style="margin-top:1.5rem;">Venue Sections</div>
-          <div class="section-list" id="ce-sections-list"></div>
-          <div style="display:flex;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap;">
-            <input class="dash-input" id="ce-sec-name" placeholder="Section name" style="flex:1;min-width:120px;">
-            <input class="dash-input" id="ce-sec-detail" placeholder="Detail (e.g. Rows 1–8)" style="flex:1;min-width:120px;">
-            <input class="dash-input" id="ce-sec-cap" type="number" placeholder="Capacity" style="width:100px;">
-            <button class="dash-btn-ghost" onclick="addSection()">+ Add</button>
-          </div>
-
-          <div style="display:flex;gap:10px;">
+          <div style="display:flex;gap:10px">
             <button class="dash-btn" id="ce-submit-btn" onclick="submitNewEvent()">Save Event</button>
-            <button class="dash-btn-ghost" onclick="switchPromoterTab('events',document.querySelector('.dash-nav-item'))">Cancel</button>
+            <button class="dash-btn-ghost" onclick="switchDashTab('promoter','events',document.querySelector(\'#page-promoter .dash-nav-item\'))">Cancel</button>
           </div>
           <div class="dash-msg" id="ce-msg"></div>
         </div>
       </div>
 
-      <!-- Bid Reports tab -->
+      <!-- Bid Reports -->
       <div class="dash-tab" id="promoter-tab-bids">
-        <div class="dash-header">
-          <div class="dash-title">BID REPORTS</div>
-          <div class="dash-sub">All bids across your events</div>
-        </div>
-        <div style="margin-bottom:1rem;">
-          <select class="dash-select" id="promoter-bid-event-filter" onchange="loadPromoterBids()" style="max-width:300px;">
-            <option value="all">All events</option>
-          </select>
-        </div>
-        <div style="overflow-x:auto;">
+        <div class="dash-header"><div><div class="dash-title">BID REPORTS</div><div class="dash-sub">All bids across your events</div></div></div>
+        <select class="dash-select" id="promoter-bid-event-filter" onchange="loadPromoterBids()" style="max-width:320px;margin-bottom:1rem"><option value="all">All events</option></select>
+        <div style="overflow-x:auto">
           <table class="dash-table">
-            <thead><tr><th>Event</th><th>Tier</th><th>Section</th><th>Amount</th><th>Time</th></tr></thead>
-            <tbody id="promoter-bids-body"><tr><td colspan="5" class="dash-empty">Loading…</td></tr></tbody>
+            <thead><tr><th>Event</th><th>Tier</th><th>Section</th><th>Amount</th><th>Date</th></tr></thead>
+            <tbody id="promoter-bids-body"><tr><td colspan="5" class="dash-empty">Select an event above</td></tr></tbody>
           </table>
         </div>
       </div>
-
     </div>
   </div>
 </div>
@@ -792,31 +727,26 @@
   <div class="dash-layout">
     <div class="dash-nav">
       <div class="dash-nav-title">Admin</div>
-      <div class="dash-nav-item active" onclick="switchAdminTab('overview',this)">
+      <div class="dash-nav-item active" onclick="switchDashTab('admin','overview',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
         Overview
       </div>
-      <div class="dash-nav-item" onclick="switchAdminTab('events',this)">
+      <div class="dash-nav-item" onclick="switchDashTab('admin','events',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
         All Events
       </div>
-      <div class="dash-nav-item" onclick="switchAdminTab('users',this)">
+      <div class="dash-nav-item" onclick="switchDashTab('admin','users',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
         Users
       </div>
-      <div class="dash-nav-item" onclick="switchAdminTab('invites',this)">
+      <div class="dash-nav-item" onclick="switchDashTab('admin','invites',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.22 1.18 2 2 0 012.18 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.09a16 16 0 006 6l1.06-1.06a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.29v2.63z"/></svg>
         Invite Promoters
       </div>
     </div>
     <div class="dash-body">
-
-      <!-- Overview -->
       <div class="dash-tab active" id="admin-tab-overview">
-        <div class="dash-header">
-          <div class="dash-title">OVERVIEW</div>
-          <div class="dash-sub">Platform at a glance</div>
-        </div>
+        <div class="dash-header"><div><div class="dash-title">OVERVIEW</div><div class="dash-sub">Platform at a glance</div></div></div>
         <div class="stat-row">
           <div class="stat-box"><div class="stat-box-val" id="admin-stat-events">—</div><div class="stat-box-lbl">Live events</div></div>
           <div class="stat-box"><div class="stat-box-val" id="admin-stat-bids">—</div><div class="stat-box-lbl">Total bids</div></div>
@@ -824,54 +754,31 @@
           <div class="stat-box"><div class="stat-box-val" id="admin-stat-promoters">—</div><div class="stat-box-lbl">Promoters</div></div>
         </div>
       </div>
-
-      <!-- All Events -->
       <div class="dash-tab" id="admin-tab-events">
-        <div class="dash-header">
-          <div class="dash-title">ALL EVENTS</div>
-          <div class="dash-sub">Every event on the platform</div>
-        </div>
-        <div style="overflow-x:auto;">
+        <div class="dash-header"><div><div class="dash-title">ALL EVENTS</div><div class="dash-sub">Every event on the platform</div></div></div>
+        <div style="overflow-x:auto">
           <table class="dash-table">
             <thead><tr><th>Event</th><th>Promoter</th><th>Status</th><th>Closes</th><th>Bids</th><th></th><th></th></tr></thead>
             <tbody id="admin-events-body"><tr><td colspan="7" class="dash-empty">Loading…</td></tr></tbody>
           </table>
         </div>
       </div>
-
-      <!-- Users -->
       <div class="dash-tab" id="admin-tab-users">
-        <div class="dash-header">
-          <div class="dash-title">USERS</div>
-          <div class="dash-sub">All registered accounts</div>
-        </div>
-        <div style="overflow-x:auto;">
+        <div class="dash-header"><div><div class="dash-title">USERS</div><div class="dash-sub">All registered accounts</div></div></div>
+        <input class="dash-search" id="admin-users-search" placeholder="Search by email…" oninput="filterAdminUsers(this.value)">
+        <div style="overflow-x:auto">
           <table class="dash-table">
-            <thead><tr><th>Email</th><th>Role</th><th>Joined</th><th></th></tr></thead>
-            <tbody id="admin-users-body"><tr><td colspan="4" class="dash-empty">Loading…</td></tr></tbody>
+            <thead><tr><th>Email</th><th>Role</th><th>Joined</th><th>Change role</th><th></th></tr></thead>
+            <tbody id="admin-users-body"><tr><td colspan="5" class="dash-empty">Loading…</td></tr></tbody>
           </table>
         </div>
       </div>
-
-      <!-- Invite Promoters -->
       <div class="dash-tab" id="admin-tab-invites">
-        <div class="dash-header">
-          <div class="dash-title">INVITE PROMOTERS</div>
-          <div class="dash-sub">Send an invite to a venue or promoter</div>
-        </div>
-        <div class="dash-form" style="margin-bottom:2rem;">
+        <div class="dash-header"><div><div class="dash-title">INVITE PROMOTERS</div><div class="dash-sub">Send an invite to a venue or promoter</div></div></div>
+        <div class="dash-form" style="margin-bottom:2rem">
           <div class="dash-form-row">
-            <div class="dash-field">
-              <label class="dash-label">Email address</label>
-              <input class="dash-input" id="invite-email" placeholder="promoter@venue.com">
-            </div>
-            <div class="dash-field">
-              <label class="dash-label">Role</label>
-              <select class="dash-select" id="invite-role">
-                <option value="promoter">Promoter</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
+            <div class="dash-field"><label class="dash-label">Email address</label><input class="dash-input" id="invite-email" placeholder="promoter@venue.com"></div>
+            <div class="dash-field"><label class="dash-label">Role</label><select class="dash-select" id="invite-role"><option value="promoter">Promoter</option><option value="admin">Admin</option></select></div>
           </div>
           <button class="dash-btn" id="invite-btn" onclick="sendInvite()">Send Invite</button>
           <div class="dash-msg" id="invite-msg"></div>
@@ -882,12 +789,12 @@
           <tbody id="admin-invites-body"><tr><td colspan="4" class="dash-empty">Loading…</td></tr></tbody>
         </table>
       </div>
-
     </div>
   </div>
 </div>
 
-<div class="bid-flash" id="bid-flash">Bid placed</div>
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
 <script>
 'use strict';
@@ -908,13 +815,43 @@ let realtimeChan   = null;
 let eventsCache    = [];
 let currentPrices  = { exact:0, entry:0, lowball:0 };
 let currentBidCount = 0;
-let promoterSections = [];
+let createSections  = [];
+let editSections    = [];
+let editingEventId  = null;
+let allAdminUsers   = [];
 
 const tierMeta = {
-  exact:   { title:'Exact seat auction',  desc:"You're bidding on a specific seat. Highest bid wins — winner-take-all. You know exactly where you'll be before you commit.", detail:'→ Outbid? Your money comes back instantly. No holds, no delays.', detailCls:'detail-green', panelCls:'panel-green' },
-  entry:   { title:'Guaranteed entry',    desc:"Bid for access, not location. You're guaranteed a seat — someone may outbid you on section preference, but you always get in.", detail:'→ Entry pool fills from highest bids down. Your spot is secure.', detailCls:'detail-green', panelCls:'panel-green' },
-  lowball: { title:'Lowball standby',     desc:"Put in a low bid and find out 72 hours before doors. If seats remain and your bid clears, you're in. Otherwise, full refund — no limbo.", detail:'→ Confirmation or refund 72 hrs before showtime.', detailCls:'detail-amber', panelCls:'panel-amber' }
+  exact:   { title:'Exact seat auction',  desc:"You're bidding on a specific seat. Highest bid wins. You know exactly where you'll sit.", detail:'→ Outbid? Your money comes back instantly. No holds, no delays.', detailCls:'detail-green', panelCls:'panel-green' },
+  entry:   { title:'Guaranteed entry',    desc:"Bid for access, not location. You're guaranteed a seat — section fills from highest bids down.", detail:'→ Entry pool fills from highest bids down. Your spot is secure.', detailCls:'detail-green', panelCls:'panel-green' },
+  lowball: { title:'Lowball standby',     desc:"Put in a low bid and find out 72 hours before doors. If seats remain and your bid clears, you're in. Otherwise, full refund.", detail:'→ Confirmation or refund 72 hrs before showtime.', detailCls:'detail-amber', panelCls:'panel-amber' }
 };
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+let toastTimer = null;
+function toast(msg, type='ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show '+type;
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = 'toast'; }, 3000);
+}
+
+function fmtDate(str) {
+  if (!str) return '—';
+  return new Date(str).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+
+function timeLeft(closesAt) {
+  const secs = Math.max(0, Math.floor((new Date(closesAt) - Date.now()) / 1000));
+  if (secs === 0) return 'Closed';
+  if (secs > 86400) return Math.floor(secs/86400)+'d left';
+  if (secs > 3600)  return Math.floor(secs/3600)+'h '+Math.floor((secs%3600)/60)+'m left';
+  return Math.floor(secs/60)+'m left';
+}
 
 // ── NAV ───────────────────────────────────────────────────────────────────────
 function toggleNav() { document.getElementById('nav-links').classList.toggle('open'); }
@@ -923,25 +860,41 @@ function closeNav()  { document.getElementById('nav-links').classList.remove('op
 function showPage(p) {
   document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
   document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
-  document.getElementById('page-'+p).classList.add('active');
-  const n = document.getElementById('nav-'+p);
-  if (n) n.classList.add('active');
+  document.getElementById('page-'+p)?.classList.add('active');
+  document.getElementById('nav-'+p)?.classList.add('active');
   if (p === 'events') loadAndRenderEvents('all');
   window.scrollTo(0,0);
+  closeNav();
+}
+
+function updateNav(user, role) {
+  const authBtn  = document.getElementById('nav-auth-btn');
+  const userArea = document.getElementById('nav-user-area');
+  if (user) {
+    authBtn.style.display = 'none';
+    userArea.innerHTML = `<span class="nav-user" onclick="doSignout()" title="Sign out">${esc(user.email.split('@')[0])} · sign out</span>`;
+  } else {
+    authBtn.style.display = '';
+    userArea.innerHTML = '';
+  }
+  document.getElementById('nav-mybids').style.display   = role ? '' : 'none';
+  document.getElementById('nav-promoter').style.display = (role==='promoter'||role==='admin') ? '' : 'none';
+  document.getElementById('nav-admin').style.display    = role==='admin' ? '' : 'none';
 }
 
 // ── AUTH MODAL ────────────────────────────────────────────────────────────────
-function openModal() { document.getElementById('auth-modal').classList.add('open'); }
+function openModal()  { document.getElementById('auth-modal').classList.add('open'); }
 function closeModal() { document.getElementById('auth-modal').classList.remove('open'); }
 document.getElementById('auth-modal').addEventListener('click', e => {
-  if (e.target === document.getElementById('auth-modal')) closeModal();
+  if (e.target.id === 'auth-modal') closeModal();
 });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
 function switchAuthTab(tab, btn) {
   document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('auth-form-signup').style.display = tab === 'signup' ? '' : 'none';
-  document.getElementById('auth-form-login').style.display  = tab === 'login'  ? '' : 'none';
+  document.getElementById('auth-form-signup').style.display = tab==='signup' ? '' : 'none';
+  document.getElementById('auth-form-login').style.display  = tab==='login'  ? '' : 'none';
 }
 
 async function doSignup() {
@@ -949,12 +902,12 @@ async function doSignup() {
   const pass  = document.getElementById('signup-pass').value;
   const btn   = document.getElementById('signup-btn');
   const msg   = document.getElementById('signup-msg');
-  if (!email || !pass) { msg.textContent = 'Please fill in all fields.'; msg.className = 'form-msg err'; return; }
-  btn.disabled = true; btn.textContent = 'Creating account…';
-  const { error } = await sb.auth.signUp({ email, password: pass });
-  if (error) { msg.textContent = error.message; msg.className = 'form-msg err'; }
-  else { msg.textContent = '✓ Account created! Check your email to confirm.'; msg.className = 'form-msg ok'; }
-  btn.disabled = false; btn.textContent = 'Create account';
+  if (!email||!pass) { msg.textContent='Please fill in all fields.'; msg.className='form-msg err'; return; }
+  btn.disabled=true; btn.textContent='Creating account…';
+  const { error } = await sb.auth.signUp({ email, password:pass });
+  if (error) { msg.textContent=error.message; msg.className='form-msg err'; }
+  else { msg.textContent='✓ Account created! Check your email to confirm.'; msg.className='form-msg ok'; }
+  btn.disabled=false; btn.textContent='Create account';
 }
 
 async function doLogin() {
@@ -962,289 +915,355 @@ async function doLogin() {
   const pass  = document.getElementById('login-pass').value;
   const btn   = document.getElementById('login-btn');
   const msg   = document.getElementById('login-msg');
-  if (!email || !pass) { msg.textContent = 'Please fill in all fields.'; msg.className = 'form-msg err'; return; }
-  btn.disabled = true; btn.textContent = 'Logging in…';
-  const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (!email||!pass) { msg.textContent='Please fill in all fields.'; msg.className='form-msg err'; return; }
+  btn.disabled=true; btn.textContent='Logging in…';
+  const { error } = await sb.auth.signInWithPassword({ email, password:pass });
   if (error) {
-    msg.textContent = error.message; msg.className = 'form-msg err';
-    btn.disabled = false; btn.textContent = 'Log in';
+    msg.textContent=error.message; msg.className='form-msg err';
+    btn.disabled=false; btn.textContent='Log in';
   } else {
-    msg.textContent = '✓ Logged in!'; msg.className = 'form-msg ok';
+    msg.textContent='✓ Logged in!'; msg.className='form-msg ok';
     setTimeout(closeModal, 800);
   }
 }
 
-async function doSignout() {
-  await sb.auth.signOut();
+function doSignout() {
+  sb.auth.signOut();
 }
 
 // ── AUTH STATE ────────────────────────────────────────────────────────────────
-function updateNav(user, role) {
-  // User display
-  const authBtn  = document.getElementById('nav-auth-btn');
-  const userArea = document.getElementById('nav-user-area');
-  if (user) {
-    authBtn.style.display = 'none';
-    const short = user.email.split('@')[0];
-    userArea.innerHTML = `<span class="nav-user" onclick="doSignout()" title="Sign out">${short} · sign out</span>`;
-  } else {
-    authBtn.style.display = '';
-    userArea.innerHTML = '';
-  }
-  // Role-based links
-  const r = role || null;
-  document.getElementById('nav-mybids').style.display   = r ? '' : 'none';
-  document.getElementById('nav-promoter').style.display = (r==='promoter'||r==='admin') ? '' : 'none';
-  document.getElementById('nav-admin').style.display    = r==='admin' ? '' : 'none';
-}
-
-
+sb.auth.onAuthStateChange((_event, session) => {
+  const user = session?.user || null;
+  currentUser = user;
+  if (!user) { currentProfile=null; updateNav(null,null); return; }
+  sb.from('profiles').select('*').eq('id',user.id).single()
+    .then(({ data:profile }) => {
+      currentProfile = profile;
+      updateNav(user, profile?.role||'attendee');
+    });
+});
 
 // ── EVENTS ────────────────────────────────────────────────────────────────────
+let currentFilter = 'all';
+let currentSearch = '';
+
 async function loadAndRenderEvents(filter) {
+  currentFilter = filter||'all';
   const grid = document.getElementById('events-grid');
   if (!grid) return;
-  grid.innerHTML = '<div class="events-loading">Loading events…</div>';
+  grid.innerHTML = '<div class="events-empty">Loading events…</div>';
 
-  let query = sb.from('events').select('*').eq('published', true).order('closes_at', { ascending: true });
-  if (filter === 'music')  query = query.eq('type', 'music');
-  if (filter === 'sports') query = query.eq('type', 'sports');
-  if (filter === 'hot')    query = query.eq('hot', true);
+  let query = sb.from('events').select('*').eq('published',true).order('closes_at',{ascending:true});
+  if (currentFilter==='music')  query = query.eq('type','music');
+  if (currentFilter==='sports') query = query.eq('type','sports');
+  if (currentFilter==='hot')    query = query.eq('hot',true);
 
-  const { data: events, error } = await query;
-  if (error || !events) {
-    console.error('Events error:', error);
-    grid.innerHTML = '<div class="events-loading">Failed to load events.</div>';
-    return;
-  }
-  if (!events.length) {
-    grid.innerHTML = '<div class="events-loading">No events found.</div>';
-    return;
-  }
+  const { data:events, error } = await query;
+  if (error) { grid.innerHTML='<div class="events-empty">Failed to load events. Please try again.</div>'; return; }
 
-  const { data: topBids } = await sb.from('top_bids').select('*');
+  const { data:topBids } = await sb.from('top_bids').select('*');
   const bidMap = {};
   (topBids||[]).forEach(b => {
-    if (!bidMap[b.event_id]) bidMap[b.event_id] = {};
-    bidMap[b.event_id][b.tier] = { top: b.top_amount, count: parseInt(b.bid_count||0) };
+    if (!bidMap[b.event_id]) bidMap[b.event_id]={};
+    bidMap[b.event_id][b.tier] = { top:b.top_amount, count:parseInt(b.bid_count||0) };
   });
 
-  eventsCache = events.map(e => ({ ...e, bidMap: bidMap[e.id] || {} }));
+  eventsCache = (events||[]).map(e => ({ ...e, bidMap:bidMap[e.id]||{} }));
+  renderEventGrid();
+}
 
-  grid.innerHTML = eventsCache.map(e => {
-    const exact     = e.bidMap.exact?.top || null;
-    const totalBids = (e.bidMap.exact?.count||0) + (e.bidMap.entry?.count||0) + (e.bidMap.lowball?.count||0);
-    const secsLeft  = Math.max(0, Math.floor((new Date(e.closes_at) - Date.now()) / 1000));
-    const timerStr  = secsLeft > 3600
-      ? Math.floor(secsLeft/3600)+'h '+ Math.floor((secsLeft%3600)/60)+'m left'
-      : Math.floor(secsLeft/60)+'m left';
+function renderEventGrid() {
+  const grid = document.getElementById('events-grid');
+  let list = eventsCache;
+  if (currentSearch) {
+    const q = currentSearch.toLowerCase();
+    list = list.filter(e =>
+      e.artist.toLowerCase().includes(q) ||
+      e.venue.toLowerCase().includes(q) ||
+      e.city.toLowerCase().includes(q)
+    );
+  }
+  if (!list.length) { grid.innerHTML='<div class="events-empty">No events found.</div>'; return; }
+  grid.innerHTML = list.map(e => {
+    const exact = e.bidMap.exact?.top||null;
+    const total = (e.bidMap.exact?.count||0)+(e.bidMap.entry?.count||0)+(e.bidMap.lowball?.count||0);
     return `
-    <div class="event-card" onclick="openBid('${e.id}')">
-      <span class="event-type-tag tag-${e.type}">${e.type}</span>
-      <div class="event-artist">${e.artist}</div>
-      <div class="event-meta">${e.venue}<br>${e.city} · ${e.date}</div>
+    <div class="event-card" onclick="openBid('${esc(e.id)}')">
+      ${e.hot?'<div class="event-hot-badge">Hot</div>':''}
+      <span class="event-type-tag tag-${esc(e.type)}">${esc(e.type)}</span>
+      <div class="event-artist">${esc(e.artist)}</div>
+      <div class="event-meta">${esc(e.venue)}<br>${esc(e.city)} · ${esc(e.date)}</div>
+      ${e.description?`<div class="event-desc">${esc(e.description)}</div>`:''}
       <div class="event-bid-row">
-        <div><div class="bid-label">Top bid · exact seat</div><div class="bid-amount">${exact ? '$'+exact : '—'}</div></div>
-        <div style="text-align:right;"><div class="bid-count">${totalBids} bids</div><div class="event-timer" style="margin-top:4px;">${timerStr}</div></div>
+        <div><div class="bid-label">Top bid · exact seat</div><div class="bid-amount">${exact?'$'+exact:'—'}</div></div>
+        <div style="text-align:right"><div class="bid-count">${total} bids</div><div class="event-timer" style="margin-top:4px">${timeLeft(e.closes_at)}</div></div>
       </div>
     </div>`;
   }).join('');
 }
 
 function filterEvents(btn, filter) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   loadAndRenderEvents(filter);
 }
 
+function searchEvents(val) {
+  currentSearch = val.trim();
+  renderEventGrid();
+}
+
 // ── BID PAGE ──────────────────────────────────────────────────────────────────
 async function openBid(eventId) {
-  const event = eventsCache.find(e => e.id === eventId);
+  const event = eventsCache.find(e=>e.id===eventId);
   if (!event) return;
   currentEvent = event;
   activeTier = 'exact';
   showPage('bid');
+
   document.getElementById('bid-event-title').textContent = event.artist;
   document.getElementById('bid-event-tag').textContent   = event.type;
   document.getElementById('bid-event-tag').className     = 'event-type-tag tag-'+event.type;
-  document.getElementById('bid-event-meta').innerHTML    = event.venue+'<br>'+event.city+' &nbsp;·&nbsp; '+event.date;
+  document.getElementById('bid-event-meta').innerHTML    = esc(event.venue)+'<br>'+esc(event.city)+' &nbsp;·&nbsp; '+esc(event.date);
+  document.getElementById('bid-event-desc').textContent  = event.description||'';
   document.getElementById('buy-now-price').textContent   = '$'+event.buy_now;
+
   await refreshBidPrices(eventId);
   selectTier('exact', document.querySelector('.tier-tab'));
-  const secsLeft = Math.max(0, Math.floor((new Date(event.closes_at) - Date.now()) / 1000));
-  timerSecs = secsLeft;
+  await renderSeatMap(eventId);
+
+  timerSecs = Math.max(0, Math.floor((new Date(event.closes_at)-Date.now())/1000));
   if (timerInterval) clearInterval(timerInterval);
-  timerInterval = setInterval(tickTimer, 1000);
+  timerInterval = setInterval(tickTimer,1000);
   tickTimer();
+
   await loadRecentActivity(eventId);
-  if (realtimeChan) await sb.removeChannel(realtimeChan);
+
+  if (realtimeChan) sb.removeChannel(realtimeChan);
   realtimeChan = sb.channel('bids-'+eventId)
-    .on('postgres_changes', { event:'INSERT', schema:'public', table:'bids', filter:`event_id=eq.${eventId}` }, payload => {
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'bids',filter:`event_id=eq.${eventId}`}, payload => {
       const bid = payload.new;
-      if (bid.amount > (currentPrices[bid.tier]||0)) { currentPrices[bid.tier] = bid.amount; updatePriceDisplay(); }
+      if (bid.amount>(currentPrices[bid.tier]||0)) { currentPrices[bid.tier]=bid.amount; updatePriceDisplay(); checkWinning(); }
       currentBidCount++;
-      document.getElementById('bid-meta-row').textContent = currentBidCount+' bids · auction live';
-      addActivityItem(bid.amount, null, bid.tier, false);
+      document.getElementById('bid-meta-row').textContent=currentBidCount+' bids · auction live';
+      addActivityItem(bid.amount,null,bid.tier,false);
     }).subscribe();
 }
 
+async function renderSeatMap(eventId) {
+  const diagram = document.getElementById('venue-diagram');
+  const { data:sections } = await sb.from('sections').select('*').eq('event_id',eventId).order('sort_order');
+
+  if (!sections||!sections.length) {
+    // fallback default sections
+    diagram.innerHTML = `
+      <div class="stage-bar">Stage</div>
+      <div class="seat-row">
+        <div class="seat-block selected" onclick="selectSeat(this,'Floor GA')" data-section="Floor GA" data-selected="true">
+          <span class="seat-block-name">Floor</span><span class="seat-block-detail">GA · Standing</span>
+        </div>
+      </div>
+      <div class="seat-row">
+        <div class="seat-block" onclick="selectSeat(this,'General')" data-section="General"><span class="seat-block-name">General</span><span class="seat-block-detail">Open seating</span></div>
+      </div>`;
+    document.getElementById('seat-avail').textContent = 'Floor GA selected';
+    return;
+  }
+
+  // Group sections into rows of 4
+  const rows = [];
+  for (let i=0; i<sections.length; i+=4) rows.push(sections.slice(i,i+4));
+
+  diagram.innerHTML = '<div class="stage-bar">Stage</div>' + rows.map((row,ri) => `
+    <div class="seat-row">
+      ${row.map((s,si) => `
+        <div class="seat-block${ri===0&&si===0?' selected':''}" onclick="selectSeat(this,'${esc(s.name)}')" data-section="${esc(s.name)}"${ri===0&&si===0?' data-selected="true"':''}>
+          <span class="seat-block-name">${esc(s.name)}</span>
+          <span class="seat-block-detail">${esc(s.detail||'')}${s.capacity?' · '+s.capacity+' cap':''}</span>
+        </div>`).join('')}
+    </div>`).join('');
+
+  document.getElementById('seat-avail').textContent = sections[0].name+' selected';
+}
+
 async function refreshBidPrices(eventId) {
-  const { data } = await sb.from('top_bids').select('*').eq('event_id', eventId);
-  currentPrices = { exact:0, entry:0, lowball:0 };
-  currentBidCount = 0;
-  (data||[]).forEach(b => { currentPrices[b.tier] = b.top_amount||0; currentBidCount += parseInt(b.bid_count||0); });
+  const { data } = await sb.from('top_bids').select('*').eq('event_id',eventId);
+  currentPrices={exact:0,entry:0,lowball:0}; currentBidCount=0;
+  (data||[]).forEach(b=>{ currentPrices[b.tier]=b.top_amount||0; currentBidCount+=parseInt(b.bid_count||0); });
   updatePriceDisplay();
-  document.getElementById('bid-meta-row').textContent = currentBidCount+' bids · auction live';
+  document.getElementById('bid-meta-row').textContent=currentBidCount+' bids · auction live';
 }
 
 function updatePriceDisplay() {
-  const fmt = n => n ? '$'+n : '—';
-  ['exact','entry','lowball'].forEach(t => {
-    document.getElementById('tt-price-'+t).textContent   = fmt(currentPrices[t]);
-    document.getElementById('pill-price-'+t).textContent = fmt(currentPrices[t]);
+  const fmt=n=>n?'$'+n:'—';
+  ['exact','entry','lowball'].forEach(t=>{
+    document.getElementById('tt-price-'+t).textContent=fmt(currentPrices[t]);
+    document.getElementById('pill-price-'+t).textContent=fmt(currentPrices[t]);
   });
 }
 
+function checkWinning() {
+  if (!currentUser||!currentEvent) return;
+  const el = document.getElementById('bid-winning-indicator');
+  // Check if user has a bid at or above current top for active tier
+  sb.from('bids').select('amount').eq('event_id',currentEvent.id).eq('user_id',currentUser.id).eq('tier',activeTier).order('amount',{ascending:false}).limit(1)
+    .then(({data}) => {
+      if (!data?.length) { el.style.display='none'; return; }
+      const myBest = data[0].amount;
+      const topBid = currentPrices[activeTier]||0;
+      el.style.display='';
+      if (myBest>=topBid) { el.className='bid-winning-indicator winning'; el.textContent='✓ You are currently winning with $'+myBest; }
+      else { el.className='bid-winning-indicator losing'; el.textContent='You were outbid — top is now $'+topBid; }
+    });
+}
+
 async function loadRecentActivity(eventId) {
-  document.getElementById('activity-feed').innerHTML = '';
-  const { data } = await sb.from('bids').select('amount,tier,created_at').eq('event_id', eventId).order('created_at', {ascending:false}).limit(7);
-  (data||[]).reverse().forEach(b => addActivityItem(b.amount, null, b.tier, true));
+  document.getElementById('activity-feed').innerHTML='';
+  const { data } = await sb.from('bids').select('amount,tier,created_at').eq('event_id',eventId).order('created_at',{ascending:false}).limit(7);
+  (data||[]).reverse().forEach(b=>addActivityItem(b.amount,null,b.tier,true));
 }
 
 // ── BIDDING ───────────────────────────────────────────────────────────────────
 async function placeBid() {
   if (!currentUser) { openModal(); return; }
-  const inp = document.getElementById('bid-input');
-  const val = parseInt(inp.value);
-  const curTop = currentPrices[activeTier]||0;
-  if (!val || val < 1) { inp.style.borderColor='#c94b1e'; setTimeout(()=>{inp.style.borderColor='';},800); showFlash('Enter a valid bid amount','error-flash'); return; }
-  if (val <= curTop)   { inp.style.borderColor='#c94b1e'; setTimeout(()=>{inp.style.borderColor='';},800); showFlash('Bid must be higher than $'+curTop,'error-flash'); return; }
-  const btn = document.getElementById('place-bid-btn');
-  btn.disabled = true; btn.textContent = 'Placing…';
-  const selectedSection = document.querySelector('.seat-block[data-selected="true"]')?.dataset.section || 'Floor GA';
-  const { data, error } = await sb.rpc('place_bid', { p_event_id:currentEvent.id, p_tier:activeTier, p_amount:val, p_section:selectedSection });
-  btn.disabled = false; btn.textContent = 'Bid now';
-  if (error || !data?.ok) {
-    showFlash(data?.error || 'Error placing bid', 'error-flash');
-    if (data?.current_top) { currentPrices[activeTier] = data.current_top; updatePriceDisplay(); }
+  const inp=document.getElementById('bid-input');
+  const val=parseInt(inp.value);
+  const curTop=currentPrices[activeTier]||0;
+  if (!val||val<1) { inp.classList.add('err'); setTimeout(()=>inp.classList.remove('err'),800); toast('Enter a valid bid amount','err'); return; }
+  if (val<=curTop) { inp.classList.add('err'); setTimeout(()=>inp.classList.remove('err'),800); toast('Bid must be higher than $'+curTop,'err'); return; }
+  const btn=document.getElementById('place-bid-btn');
+  btn.disabled=true; btn.textContent='Placing…';
+  const section=document.querySelector('.seat-block[data-selected="true"]')?.dataset.section||'General';
+  const { data, error } = await sb.rpc('place_bid',{p_event_id:currentEvent.id,p_tier:activeTier,p_amount:val,p_section:section});
+  btn.disabled=false; btn.textContent='Bid now';
+  if (error||!data?.ok) {
+    toast(data?.error||'Error placing bid — please try again','err');
+    if (data?.current_top) { currentPrices[activeTier]=data.current_top; updatePriceDisplay(); }
     return;
   }
-  currentPrices[activeTier] = val; updatePriceDisplay();
+  currentPrices[activeTier]=val; updatePriceDisplay(); checkWinning();
   currentBidCount++;
-  document.getElementById('bid-meta-row').textContent = currentBidCount+' bids · auction live';
-  inp.value = ''; inp.placeholder = '$'+(val+1);
-  showFlash('Bid of $'+val+' placed!', activeTier==='lowball'?'amber-flash':'');
+  document.getElementById('bid-meta-row').textContent=currentBidCount+' bids · auction live';
+  inp.value=''; inp.placeholder='$'+(val+1);
+  toast('Bid of $'+val+' placed!', activeTier==='lowball'?'amber':'ok');
 }
 
-function showFlash(msg, cls='') {
-  const f = document.getElementById('bid-flash');
-  f.textContent = msg;
-  f.className = 'bid-flash show'+(cls?' '+cls:'');
-  setTimeout(()=>{ f.className='bid-flash'; }, 2600);
+function shareEvent() {
+  const url = window.location.href;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(()=>toast('Link copied to clipboard!','ok'));
+  } else {
+    toast('Copy this link: '+url,'ok');
+  }
 }
 
 function selectTier(tier, btn) {
-  activeTier = tier;
-  const isAmber = tier==='lowball';
-  document.querySelectorAll('.tier-tab').forEach(t=>{ t.className='tier-tab'; });
+  activeTier=tier;
+  const isAmber=tier==='lowball';
+  document.querySelectorAll('.tier-tab').forEach(t=>{t.className='tier-tab';});
   btn.classList.add(isAmber?'active-amber':'active-exact');
-  const meta = tierMeta[tier];
-  document.getElementById('tier-info-title').textContent = meta.title;
-  document.getElementById('tier-info-desc').textContent  = meta.desc;
-  const d = document.getElementById('tier-info-detail');
-  d.textContent = meta.detail; d.className = 'tier-info-detail '+meta.detailCls;
-  document.getElementById('tier-info-panel').className = 'tier-info-panel '+meta.panelCls;
-  const price = currentPrices[tier]||0;
-  document.getElementById('bid-input').placeholder = '$'+(price+1);
-  document.getElementById('bid-input').className   = 'bid-input'+(isAmber?' amber-input':'');
-  document.getElementById('place-bid-btn').className = 'place-bid-btn'+(isAmber?' amber-btn':'');
-  document.getElementById('bid-input-label').textContent = 'Your bid — '+meta.title;
+  const meta=tierMeta[tier];
+  document.getElementById('tier-info-title').textContent=meta.title;
+  document.getElementById('tier-info-desc').textContent=meta.desc;
+  const d=document.getElementById('tier-info-detail');
+  d.textContent=meta.detail; d.className='tier-info-detail '+meta.detailCls;
+  document.getElementById('tier-info-panel').className='tier-info-panel '+meta.panelCls;
+  document.getElementById('bid-input').placeholder='$'+((currentPrices[tier]||0)+1);
+  document.getElementById('bid-input').className='bid-input'+(isAmber?' amber-input':'');
+  document.getElementById('place-bid-btn').className='place-bid-btn'+(isAmber?' amber-btn':'');
+  document.getElementById('bid-input-label').textContent='Your bid — '+meta.title;
   document.querySelectorAll('.price-pill').forEach(p=>p.className='price-pill');
   document.getElementById('pill-'+tier).classList.add(isAmber?'active-amber-pill':'active-green');
-  document.querySelectorAll('.seat-block').forEach(b=>{ b.classList.remove('selected','selected-amber'); });
-  const sel = document.querySelector('.seat-block[data-selected="true"]')||document.querySelector('.seat-block');
+  document.querySelectorAll('.seat-block').forEach(b=>{b.classList.remove('selected','selected-amber');});
+  const sel=document.querySelector('.seat-block[data-selected="true"]')||document.querySelector('.seat-block');
   if (sel) sel.classList.add(isAmber?'selected-amber':'selected');
+  checkWinning();
 }
 
 function selectTierFromPill(tier) {
-  const tabs = document.querySelectorAll('.tier-tab');
-  selectTier(tier, tabs[tier==='exact'?0:tier==='entry'?1:2]);
+  selectTier(tier, document.querySelectorAll('.tier-tab')[tier==='exact'?0:tier==='entry'?1:2]);
 }
 
 function selectSeat(el, section) {
-  const isAmber = activeTier==='lowball';
-  document.querySelectorAll('.seat-block').forEach(b=>{ b.classList.remove('selected','selected-amber'); delete b.dataset.selected; });
+  const isAmber=activeTier==='lowball';
+  document.querySelectorAll('.seat-block').forEach(b=>{b.classList.remove('selected','selected-amber');delete b.dataset.selected;});
   el.classList.add(isAmber?'selected-amber':'selected');
-  el.dataset.selected = 'true';
-  document.getElementById('seat-avail').textContent = section+' selected';
+  el.dataset.selected='true';
+  document.getElementById('seat-avail').textContent=section+' selected';
 }
 
 function addAmount(n) {
-  const inp = document.getElementById('bid-input');
-  inp.value = (parseInt(inp.value)||(currentPrices[activeTier]||0))+n;
+  const inp=document.getElementById('bid-input');
+  inp.value=(parseInt(inp.value)||(currentPrices[activeTier]||0))+n;
 }
 
 function tickTimer() {
-  if (timerSecs<=0) { clearInterval(timerInterval); return; }
+  if (timerSecs<=0) { clearInterval(timerInterval); document.getElementById('timer-h').textContent=document.getElementById('timer-m').textContent=document.getElementById('timer-s').textContent='00'; return; }
   timerSecs--;
-  document.getElementById('timer-h').textContent = String(Math.floor(timerSecs/3600)).padStart(2,'0');
-  document.getElementById('timer-m').textContent = String(Math.floor((timerSecs%3600)/60)).padStart(2,'0');
-  document.getElementById('timer-s').textContent = String(timerSecs%60).padStart(2,'0');
+  document.getElementById('timer-h').textContent=String(Math.floor(timerSecs/3600)).padStart(2,'0');
+  document.getElementById('timer-m').textContent=String(Math.floor((timerSecs%3600)/60)).padStart(2,'0');
+  document.getElementById('timer-s').textContent=String(timerSecs%60).padStart(2,'0');
 }
 
-function maskName(name) { return name[0]+'****'+name[name.length-1]; }
-const fallbackNames = ['Alex','Jordan','Morgan','Taylor','Casey','Blake','Sam','Riley'];
+const maskName=n=>n[0]+'****'+n[n.length-1];
+const names=['Alex','Jordan','Morgan','Taylor','Casey','Blake','Sam','Riley'];
 
-function addActivityItem(amount, who, tier, append) {
-  const feed = document.getElementById('activity-feed');
-  const name = who || maskName(fallbackNames[Math.floor(Math.random()*fallbackNames.length)]);
-  const tagCls = tier==='lowball'?'at-low':'at-exact';
-  const tagLbl = tier==='exact'?'Exact':tier==='entry'?'Entry':'Standby';
-  const item = document.createElement('div');
-  item.className = 'activity-item';
-  item.innerHTML = `<div><div class="activity-bidder">${name}</div><span class="activity-tier ${tagCls}">${tagLbl}</span></div><div class="activity-amount">$${amount}</div>`;
-  if (append) { feed.appendChild(item); } else { feed.insertBefore(item, feed.firstChild); }
-  const items = feed.querySelectorAll('.activity-item');
-  if (items.length>7) items[items.length-1].remove();
+function addActivityItem(amount,who,tier,append) {
+  const feed=document.getElementById('activity-feed');
+  const name=who||maskName(names[Math.floor(Math.random()*names.length)]);
+  const tagCls=tier==='lowball'?'at-low':'at-exact';
+  const tagLbl=tier==='exact'?'Exact':tier==='entry'?'Entry':'Standby';
+  const item=document.createElement('div');
+  item.className='activity-item';
+  item.innerHTML=`<div><div class="activity-bidder">${esc(name)}</div><span class="activity-tier ${tagCls}">${tagLbl}</span></div><div class="activity-amount">$${amount}</div>`;
+  if(append){feed.appendChild(item);}else{feed.insertBefore(item,feed.firstChild);}
+  const items=feed.querySelectorAll('.activity-item');
+  if(items.length>7) items[items.length-1].remove();
+}
+
+// ── DASHBOARD SHARED ──────────────────────────────────────────────────────────
+function switchDashTab(dash, tab, el) {
+  const page = document.getElementById('page-'+dash);
+  page.querySelectorAll('.dash-nav-item').forEach(i=>i.classList.remove('active'));
+  page.querySelectorAll('.dash-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById(dash+'-tab-'+tab)?.classList.add('active');
+  // trigger load
+  if (dash==='mybids') { if(tab==='bids')loadMyBids(); if(tab==='account')loadMyAccount(); }
+  if (dash==='promoter') { if(tab==='events')loadPromoterEvents(); if(tab==='bids'){loadPromoterBidFilter();loadPromoterBids();} }
+  if (dash==='admin') { if(tab==='overview')loadAdminOverview(); if(tab==='events')loadAdminEvents(); if(tab==='users')loadAdminUsers(); if(tab==='invites')loadAdminInvites(); }
 }
 
 // ── MY BIDS ───────────────────────────────────────────────────────────────────
-function switchMyBidsTab(tab, el) {
-  document.querySelectorAll('#page-mybids .dash-nav-item').forEach(i=>i.classList.remove('active'));
-  document.querySelectorAll('#page-mybids .dash-tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('mybids-tab-'+tab).classList.add('active');
-  if (tab==='bids') loadMyBids();
-  if (tab==='account') loadMyAccount();
-}
-
 async function loadMyBids() {
   if (!currentUser) { showPage('home'); openModal(); return; }
-  const list = document.getElementById('mybids-list');
-  list.innerHTML = '<div class="dash-empty">Loading…</div>';
-  const { data: bids, error } = await sb.from('bids').select('*, events(artist,venue,city,date)').eq('user_id',currentUser.id).order('created_at',{ascending:false});
-  if (error||!bids?.length) { list.innerHTML='<div class="dash-empty">No bids yet — go find an event!</div>'; document.getElementById('stat-total-bids').textContent='0'; document.getElementById('stat-active-bids').textContent='0'; document.getElementById('stat-top-bid').textContent='—'; return; }
-  document.getElementById('stat-total-bids').textContent = bids.length;
-  document.getElementById('stat-active-bids').textContent = new Set(bids.map(b=>b.event_id)).size;
-  document.getElementById('stat-top-bid').textContent = '$'+Math.max(...bids.map(b=>b.amount));
-  const { data: results } = await sb.from('auction_results').select('bid_id,outcome').eq('user_id',currentUser.id);
-  const resultMap = {};
-  (results||[]).forEach(r=>{ resultMap[r.bid_id]=r.outcome; });
-  const tierLabel = { exact:'Lock it in', entry:'Get in', lowball:'Shoot your shot' };
-  const outcomeStyle = { won:'color:var(--acid);font-weight:600', lost:'color:var(--rust)', refunded:'color:var(--muted)' };
-  const outcomeLabel = { won:'✓ Won', lost:'Not successful', refunded:'Refunded' };
-  list.innerHTML = bids.map(b => {
-    const outcome = resultMap[b.id];
-    return `<div class="my-bid-card" style="${outcome==='lost'?'opacity:0.6':''}">
+  const list=document.getElementById('mybids-list');
+  list.innerHTML='<div class="dash-empty">Loading…</div>';
+  const { data:bids } = await sb.from('bids').select('*, events(artist,venue,city,date)').eq('user_id',currentUser.id).order('created_at',{ascending:false});
+  if (!bids?.length) {
+    list.innerHTML='<div class="dash-empty">No bids yet — <a href="#" onclick="showPage(\'events\')" style="color:var(--acid)">find an event</a></div>';
+    ['stat-total-bids','stat-active-bids'].forEach(id=>document.getElementById(id).textContent='0');
+    document.getElementById('stat-top-bid').textContent='—'; return;
+  }
+  document.getElementById('stat-total-bids').textContent=bids.length;
+  document.getElementById('stat-active-bids').textContent=new Set(bids.map(b=>b.event_id)).size;
+  document.getElementById('stat-top-bid').textContent='$'+Math.max(...bids.map(b=>b.amount));
+  const { data:results } = await sb.from('auction_results').select('bid_id,outcome').eq('user_id',currentUser.id);
+  const rMap={};
+  (results||[]).forEach(r=>{rMap[r.bid_id]=r.outcome;});
+  const tierLabel={exact:'Lock it in',entry:'Get in',lowball:'Shoot your shot'};
+  list.innerHTML=bids.map(b=>{
+    const outcome=rMap[b.id];
+    const chip=outcome?`<span class="winner-chip ${outcome}">${outcome==='won'?'✓ Won':outcome==='refunded'?'Refunded':'Not successful'}</span>`:`<span class="winner-chip live">● Live</span>`;
+    return `<div class="my-bid-card" onclick="openBid('${esc(b.event_id)}')">
       <div>
-        <div class="my-bid-event">${b.events?.artist||'—'}</div>
-        <div class="my-bid-meta">${b.events?.venue||''} · ${b.events?.date||''}<br>${b.section||''} · ${new Date(b.created_at).toLocaleDateString()}</div>
-        ${!outcome?'<div style="font-family:var(--font-mono);font-size:10px;color:var(--acid);margin-top:4px;">● Live</div>':''}
+        <div class="my-bid-event">${esc(b.events?.artist||'—')}</div>
+        <div class="my-bid-meta">${esc(b.events?.venue||'')} · ${esc(b.events?.date||'')}<br>${esc(b.section||'')} · ${fmtDate(b.created_at)}</div>
+        ${chip}
       </div>
       <div>
-        <div class="my-bid-amount" style="${outcome?outcomeStyle[outcome]||'':''}"">$${b.amount}</div>
+        <div class="my-bid-amount" style="${outcome==='lost'?'color:var(--muted)':outcome==='won'?'color:var(--acid)':''}"">$${b.amount}</div>
         <div class="my-bid-tier">${tierLabel[b.tier]||b.tier}</div>
-        ${outcome?`<div style="font-family:var(--font-mono);font-size:10px;margin-top:4px;${outcomeStyle[outcome]||''}">${outcomeLabel[outcome]}</div>`:''}
       </div>
     </div>`;
   }).join('');
@@ -1252,260 +1271,352 @@ async function loadMyBids() {
 
 async function loadMyAccount() {
   if (!currentUser) return;
-  document.getElementById('mybids-account-email').textContent = currentUser.email;
-  const roleMap = { attendee:'Attendee — can browse and bid on events', promoter:'Promoter — can create and manage events', admin:'Admin — full platform access' };
-  const role = currentProfile?.role||'attendee';
-  document.getElementById('mybids-role-display').innerHTML = `<span class="role-badge role-${role}">${role}</span><p style="margin-top:0.75rem;font-size:13px;color:var(--muted);">${roleMap[role]}</p>`;
+  document.getElementById('mybids-account-email').textContent=currentUser.email;
+  const role=currentProfile?.role||'attendee';
+  const roleDesc={attendee:'Can browse and bid on events',promoter:'Can create and manage events',admin:'Full platform access'};
+  document.getElementById('mybids-role-display').innerHTML=`<span class="role-badge role-${role}">${role}</span><p style="margin-top:0.75rem;font-size:13px;color:var(--muted)">${roleDesc[role]||''}</p>`;
 }
 
 // ── PROMOTER DASH ─────────────────────────────────────────────────────────────
-function switchPromoterTab(tab, el) {
-  document.querySelectorAll('#page-promoter .dash-nav-item').forEach(i=>i.classList.remove('active'));
-  document.querySelectorAll('#page-promoter .dash-tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('promoter-tab-'+tab).classList.add('active');
-  if (tab==='events') loadPromoterEvents();
-  if (tab==='bids') { loadPromoterBidFilter(); loadPromoterBids(); }
-}
-
 async function loadPromoterDash() { loadPromoterEvents(); }
 
 async function loadPromoterEvents() {
   if (!currentUser) return;
-  const el = document.getElementById('promoter-events-list');
-  el.innerHTML = '<div class="dash-empty">Loading…</div>';
-  const { data: events } = await sb.from('events').select('*').eq('promoter_id',currentUser.id).order('created_at',{ascending:false});
-  if (!events?.length) { el.innerHTML='<div class="dash-empty">No events yet — create your first one!</div>'; return; }
-  const { data: topBids } = await sb.from('top_bids').select('*').in('event_id',events.map(e=>e.id));
-  const bidMap = {};
-  (topBids||[]).forEach(b=>{ bidMap[b.event_id]=(bidMap[b.event_id]||0)+parseInt(b.bid_count||0); });
-  el.innerHTML = `<table class="dash-table"><thead><tr><th>Event</th><th>Status</th><th>Buy Now</th><th>Closes</th><th>Bids</th><th></th></tr></thead><tbody>${events.map(e=>`
-    <tr>
-      <td><strong>${e.artist}</strong><br><span style="font-size:11px;color:var(--muted)">${e.venue} · ${e.city}</span></td>
+  cancelEventEdit();
+  const el=document.getElementById('promoter-events-list');
+  el.innerHTML='<div class="dash-empty">Loading…</div>';
+  const { data:events } = await sb.from('events').select('*').eq('promoter_id',currentUser.id).order('created_at',{ascending:false});
+  if (!events?.length) { el.innerHTML='<div class="dash-empty">No events yet — <a href="#" onclick="switchDashTab(\'promoter\',\'create\',document.querySelectorAll(\'#page-promoter .dash-nav-item\')[1])" style="color:var(--acid)">create your first event</a></div>'; return; }
+  const { data:topBids } = await sb.from('top_bids').select('*').in('event_id',events.map(e=>e.id));
+  const bidMap={};
+  (topBids||[]).forEach(b=>{bidMap[b.event_id]=(bidMap[b.event_id]||0)+parseInt(b.bid_count||0);});
+  el.innerHTML=`<table class="dash-table"><thead><tr><th>Event</th><th>Status</th><th>Buy Now</th><th>Closes</th><th>Bids</th><th></th></tr></thead><tbody>${
+    events.map(e=>`<tr style="cursor:pointer" onclick="openEventEdit('${esc(e.id)}')">
+      <td><strong>${esc(e.artist)}</strong><br><span style="font-size:11px;color:var(--muted)">${esc(e.venue)} · ${esc(e.city)}</span></td>
       <td><span class="status-badge ${e.published?'status-live':'status-draft'}">${e.published?'Live':'Draft'}</span></td>
-      <td style="font-family:var(--font-mono)">$${e.buy_now}</td>
-      <td style="font-family:var(--font-mono);font-size:11px;">${new Date(e.closes_at).toLocaleDateString()}</td>
-      <td style="font-family:var(--font-mono)">${bidMap[e.id]||0}</td>
-      <td><button class="dash-btn-danger" onclick="togglePublish('${e.id}',${e.published})">${e.published?'Unpublish':'Publish'}</button></td>
-    </tr>`).join('')}</tbody></table>`;
+      <td style="font-family:var(--fm)">$${e.buy_now}</td>
+      <td style="font-family:var(--fm);font-size:11px">${fmtDate(e.closes_at)}</td>
+      <td style="font-family:var(--fm)">${bidMap[e.id]||0}</td>
+      <td style="color:var(--muted);font-family:var(--fm);font-size:11px">Edit →</td>
+    </tr>`).join('')
+  }</tbody></table>`;
+}
+
+async function openEventEdit(eventId) {
+  editingEventId = eventId;
+  const { data:e } = await sb.from('events').select('*').eq('id',eventId).single();
+  if (!e) return;
+  document.getElementById('edit-event-name').textContent = e.artist;
+  document.getElementById('edit-artist').value  = e.artist;
+  document.getElementById('edit-type').value    = e.type;
+  document.getElementById('edit-venue').value   = e.venue;
+  document.getElementById('edit-city').value    = e.city;
+  document.getElementById('edit-date').value    = e.date;
+  document.getElementById('edit-buynow').value  = e.buy_now;
+  document.getElementById('edit-published').checked = e.published;
+  document.getElementById('edit-desc').value    = e.description||'';
+  document.getElementById('edit-msg').textContent = '';
+  // closes_at to local datetime string
+  if (e.closes_at) {
+    const d=new Date(e.closes_at);
+    const pad=n=>String(n).padStart(2,'0');
+    document.getElementById('edit-closes').value=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  // Load sections
+  const { data:sections } = await sb.from('sections').select('*').eq('event_id',eventId).order('sort_order');
+  editSections = (sections||[]).map(s=>({...s}));
+  renderEditSectionList();
+  document.getElementById('promoter-edit-panel').style.display='';
+  document.getElementById('promoter-edit-panel').scrollIntoView({behavior:'smooth'});
+  // Load winners if closed
+  const { data:results } = await sb.from('auction_results').select('*, profiles(email)').eq('event_id',eventId);
+  const winnersSection = document.getElementById('edit-winners-section');
+  const winnersList = document.getElementById('edit-winners-list');
+  if (results?.length) {
+    winnersSection.style.display='';
+    const tierLabel={exact:'Lock it in',entry:'Get in',lowball:'Shoot your shot'};
+    winnersList.innerHTML=results.filter(r=>r.outcome==='won').map(r=>`
+      <div class="event-winner-row">
+        <div class="event-winner-email">${esc(r.profiles?.email||'Unknown')}</div>
+        <div class="event-winner-tier">${tierLabel[r.tier]||r.tier}</div>
+        <div class="event-winner-amount">$${r.amount}</div>
+        <span class="winner-chip won">Won</span>
+      </div>`).join('') || '<div class="dash-empty" style="padding:1rem">No winners yet</div>';
+  } else { winnersSection.style.display='none'; }
+}
+
+function cancelEventEdit() {
+  editingEventId=null;
+  editSections=[];
+  document.getElementById('promoter-edit-panel').style.display='none';
+}
+
+function renderEditSectionList() {
+  document.getElementById('edit-sections-list').innerHTML=editSections.map((s,i)=>`
+    <div class="section-builder-row">
+      <span class="section-builder-name">${esc(s.name)}</span>
+      <span class="section-builder-detail">${esc(s.detail||'')} ${s.capacity?'· '+s.capacity+' cap':''}</span>
+      <button class="dash-btn-danger" onclick="removeEditSection(${i})" style="padding:3px 10px">×</button>
+    </div>`).join('');
+}
+
+function addEditSection() {
+  const name=document.getElementById('edit-sec-name').value.trim();
+  const detail=document.getElementById('edit-sec-detail').value.trim();
+  const cap=parseInt(document.getElementById('edit-sec-cap').value)||0;
+  if (!name) return;
+  editSections.push({name,detail,capacity:cap,sort_order:editSections.length+1});
+  renderEditSectionList();
+  document.getElementById('edit-sec-name').value='';
+  document.getElementById('edit-sec-detail').value='';
+  document.getElementById('edit-sec-cap').value='';
+}
+
+function removeEditSection(i) { editSections.splice(i,1); renderEditSectionList(); }
+
+async function saveEventEdit() {
+  if (!editingEventId) return;
+  const artist=document.getElementById('edit-artist').value.trim();
+  const venue=document.getElementById('edit-venue').value.trim();
+  const city=document.getElementById('edit-city').value.trim();
+  const date=document.getElementById('edit-date').value.trim();
+  const closes=document.getElementById('edit-closes').value;
+  const msg=document.getElementById('edit-msg');
+  if (!artist||!venue||!city||!date) { msg.textContent='Please fill in all required fields.'; msg.className='dash-msg err'; return; }
+  const { error } = await sb.from('events').update({
+    artist, type:document.getElementById('edit-type').value,
+    venue, city, date,
+    buy_now:parseInt(document.getElementById('edit-buynow').value)||0,
+    closes_at:closes?new Date(closes).toISOString():undefined,
+    published:document.getElementById('edit-published').checked,
+    description:document.getElementById('edit-desc').value.trim()||null,
+  }).eq('id',editingEventId);
+  if (error) { msg.textContent='Error: '+error.message; msg.className='dash-msg err'; return; }
+  // Update sections: delete all and re-insert
+  await sb.from('sections').delete().eq('event_id',editingEventId);
+  if (editSections.length) {
+    await sb.from('sections').insert(editSections.map((s,i)=>({...s,event_id:editingEventId,sort_order:i+1})));
+  }
+  msg.textContent='✓ Event updated successfully'; msg.className='dash-msg ok';
+  toast('Event saved!','ok');
+  loadPromoterEvents();
+}
+
+async function deleteEvent() {
+  if (!editingEventId) return;
+  if (!confirm('Delete this event? This cannot be undone. All bids will also be deleted.')) return;
+  await sb.from('events').delete().eq('id',editingEventId);
+  toast('Event deleted','err');
+  cancelEventEdit();
+  loadPromoterEvents();
 }
 
 async function togglePublish(eventId, current) {
   await sb.from('events').update({published:!current}).eq('id',eventId);
+  toast(current?'Event unpublished':'Event published!','ok');
   loadPromoterEvents();
 }
 
-function addSection() {
-  const name   = document.getElementById('ce-sec-name').value.trim();
-  const detail = document.getElementById('ce-sec-detail').value.trim();
-  const cap    = parseInt(document.getElementById('ce-sec-cap').value)||0;
+// Create event sections
+function addCreateSection() {
+  const name=document.getElementById('ce-sec-name').value.trim();
+  const detail=document.getElementById('ce-sec-detail').value.trim();
+  const cap=parseInt(document.getElementById('ce-sec-cap').value)||0;
   if (!name) return;
-  promoterSections.push({name, detail, capacity:cap, sort_order:promoterSections.length+1});
-  renderSectionList();
-  document.getElementById('ce-sec-name').value=''; document.getElementById('ce-sec-detail').value=''; document.getElementById('ce-sec-cap').value='';
+  createSections.push({name,detail,capacity:cap,sort_order:createSections.length+1});
+  renderCreateSectionList();
+  document.getElementById('ce-sec-name').value='';
+  document.getElementById('ce-sec-detail').value='';
+  document.getElementById('ce-sec-cap').value='';
 }
 
-function removeSection(i) { promoterSections.splice(i,1); renderSectionList(); }
+function removeCreateSection(i) { createSections.splice(i,1); renderCreateSectionList(); }
 
-function renderSectionList() {
-  document.getElementById('ce-sections-list').innerHTML = promoterSections.map((s,i)=>`
-    <div class="section-row">
-      <span class="section-row-name">${s.name}</span>
-      <span class="section-row-detail">${s.detail} ${s.capacity?'· '+s.capacity+' cap':''}</span>
-      <button class="dash-btn-danger" onclick="removeSection(${i})" style="padding:3px 10px;">×</button>
+function renderCreateSectionList() {
+  document.getElementById('ce-sections-list').innerHTML=createSections.map((s,i)=>`
+    <div class="section-builder-row">
+      <span class="section-builder-name">${esc(s.name)}</span>
+      <span class="section-builder-detail">${esc(s.detail||'')} ${s.capacity?'· '+s.capacity+' cap':''}</span>
+      <button class="dash-btn-danger" onclick="removeCreateSection(${i})" style="padding:3px 10px">×</button>
     </div>`).join('');
 }
 
 async function submitNewEvent() {
-  const artist   = document.getElementById('ce-artist').value.trim();
-  const type     = document.getElementById('ce-type').value;
-  const venue    = document.getElementById('ce-venue').value.trim();
-  const city     = document.getElementById('ce-city').value.trim();
-  const date     = document.getElementById('ce-date').value.trim();
-  const closesAt = document.getElementById('ce-closes').value;
-  const buyNow   = parseInt(document.getElementById('ce-buynow').value)||0;
-  const publish  = document.getElementById('ce-publish').checked;
-  const msg      = document.getElementById('ce-msg');
-  if (!artist||!venue||!city||!date||!closesAt) { msg.textContent='Please fill in all required fields.'; msg.className='dash-msg err'; return; }
-  const btn = document.getElementById('ce-submit-btn');
+  const artist=document.getElementById('ce-artist').value.trim();
+  const venue=document.getElementById('ce-venue').value.trim();
+  const city=document.getElementById('ce-city').value.trim();
+  const date=document.getElementById('ce-date').value.trim();
+  const closes=document.getElementById('ce-closes').value;
+  const msg=document.getElementById('ce-msg');
+  if (!artist||!venue||!city||!date||!closes) { msg.textContent='Please fill in all required fields.'; msg.className='dash-msg err'; return; }
+  const btn=document.getElementById('ce-submit-btn');
   btn.disabled=true; btn.textContent='Saving…';
-  const { data: event, error } = await sb.from('events').insert({ promoter_id:currentUser.id, artist, type, venue, city, date, buy_now:buyNow, closes_at:new Date(closesAt).toISOString(), published:publish }).select().single();
+  const { data:event, error } = await sb.from('events').insert({
+    promoter_id:currentUser.id, artist,
+    type:document.getElementById('ce-type').value,
+    venue, city, date,
+    buy_now:parseInt(document.getElementById('ce-buynow').value)||0,
+    closes_at:new Date(closes).toISOString(),
+    published:document.getElementById('ce-publish').checked,
+    description:document.getElementById('ce-desc').value.trim()||null,
+  }).select().single();
   if (error) { msg.textContent='Error: '+error.message; msg.className='dash-msg err'; btn.disabled=false; btn.textContent='Save Event'; return; }
-  if (promoterSections.length&&event?.id) await sb.from('sections').insert(promoterSections.map(s=>({...s,event_id:event.id})));
-  msg.textContent='✓ Event saved'+(publish?' and published!':' as draft.'); msg.className='dash-msg ok';
+  if (createSections.length&&event?.id) {
+    await sb.from('sections').insert(createSections.map((s,i)=>({...s,event_id:event.id,sort_order:i+1})));
+  }
+  msg.textContent='✓ Event saved'+(document.getElementById('ce-publish').checked?' and published!':' as draft.'); msg.className='dash-msg ok';
+  toast('Event created!','ok');
   btn.disabled=false; btn.textContent='Save Event';
-  promoterSections=[];
-  renderSectionList();
-  ['ce-artist','ce-venue','ce-city','ce-date','ce-closes','ce-buynow'].forEach(id=>document.getElementById(id).value='');
+  createSections=[];
+  renderCreateSectionList();
+  ['ce-artist','ce-venue','ce-city','ce-date','ce-closes','ce-buynow','ce-desc'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('ce-publish').checked=false;
 }
 
 async function loadPromoterBidFilter() {
-  const sel = document.getElementById('promoter-bid-event-filter');
-  const { data: events } = await sb.from('events').select('id,artist').eq('promoter_id',currentUser.id);
-  sel.innerHTML = '<option value="all">All events</option>'+(events||[]).map(e=>`<option value="${e.id}">${e.artist}</option>`).join('');
+  const sel=document.getElementById('promoter-bid-event-filter');
+  const { data:events } = await sb.from('events').select('id,artist').eq('promoter_id',currentUser.id);
+  sel.innerHTML='<option value="all">All events</option>'+(events||[]).map(e=>`<option value="${esc(e.id)}">${esc(e.artist)}</option>`).join('');
 }
 
 async function loadPromoterBids() {
-  const filter = document.getElementById('promoter-bid-event-filter')?.value;
-  const tbody  = document.getElementById('promoter-bids-body');
+  const filter=document.getElementById('promoter-bid-event-filter')?.value;
+  const tbody=document.getElementById('promoter-bids-body');
   tbody.innerHTML='<tr><td colspan="5" class="dash-empty">Loading…</td></tr>';
-  let query = sb.from('bids').select('*, events!inner(artist,promoter_id)').eq('events.promoter_id',currentUser.id).order('created_at',{ascending:false}).limit(100);
+  let query=sb.from('bids').select('*, events!inner(artist,promoter_id)').eq('events.promoter_id',currentUser.id).order('created_at',{ascending:false}).limit(200);
   if (filter&&filter!=='all') query=query.eq('event_id',filter);
-  const { data: bids } = await query;
+  const { data:bids } = await query;
   if (!bids?.length) { tbody.innerHTML='<tr><td colspan="5" class="dash-empty">No bids yet.</td></tr>'; return; }
   const tierLabel={exact:'Lock it in',entry:'Get in',lowball:'Shoot your shot'};
   tbody.innerHTML=bids.map(b=>`<tr>
-    <td>${b.events?.artist||'—'}</td>
+    <td>${esc(b.events?.artist||'—')}</td>
     <td><span class="role-badge role-attendee">${tierLabel[b.tier]||b.tier}</span></td>
-    <td style="font-size:12px;color:var(--muted)">${b.section||'—'}</td>
-    <td style="font-family:var(--font-display);font-size:18px;color:var(--acid)">$${b.amount}</td>
-    <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted)">${new Date(b.created_at).toLocaleDateString()}</td>
+    <td style="font-size:12px;color:var(--muted)">${esc(b.section||'—')}</td>
+    <td style="font-family:var(--fd);font-size:18px;color:var(--acid)">$${b.amount}</td>
+    <td style="font-family:var(--fm);font-size:11px;color:var(--muted)">${fmtDate(b.created_at)}</td>
   </tr>`).join('');
 }
 
 // ── ADMIN DASH ────────────────────────────────────────────────────────────────
-function switchAdminTab(tab, el) {
-  document.querySelectorAll('#page-admin .dash-nav-item').forEach(i=>i.classList.remove('active'));
-  document.querySelectorAll('#page-admin .dash-tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('admin-tab-'+tab).classList.add('active');
-  if (tab==='overview') loadAdminOverview();
-  if (tab==='events')   loadAdminEvents();
-  if (tab==='users')    loadAdminUsers();
-  if (tab==='invites')  loadAdminInvites();
-}
-
 async function loadAdminDash() { loadAdminOverview(); }
 
 async function loadAdminOverview() {
-  const [eventsRes,bidsRes,usersRes] = await Promise.all([
+  const [er,br,ur] = await Promise.all([
     sb.from('events').select('id',{count:'exact'}).eq('published',true),
     sb.from('bids').select('id',{count:'exact'}),
     sb.from('profiles').select('id,role',{count:'exact'})
   ]);
-  document.getElementById('admin-stat-events').textContent    = eventsRes.count??'—';
-  document.getElementById('admin-stat-bids').textContent      = bidsRes.count??'—';
-  document.getElementById('admin-stat-users').textContent     = usersRes.count??'—';
-  document.getElementById('admin-stat-promoters').textContent = (usersRes.data||[]).filter(u=>u.role==='promoter').length;
+  document.getElementById('admin-stat-events').textContent=er.count??'—';
+  document.getElementById('admin-stat-bids').textContent=br.count??'—';
+  document.getElementById('admin-stat-users').textContent=ur.count??'—';
+  document.getElementById('admin-stat-promoters').textContent=(ur.data||[]).filter(u=>u.role==='promoter').length;
 }
 
 async function loadAdminEvents() {
-  const tbody = document.getElementById('admin-events-body');
-  const { data: events } = await sb.from('events').select('*, profiles(email)').order('created_at',{ascending:false});
-  const { data: topBids } = await sb.from('top_bids').select('*');
+  const tbody=document.getElementById('admin-events-body');
+  const { data:events } = await sb.from('events').select('*, profiles(email)').order('created_at',{ascending:false});
+  const { data:topBids } = await sb.from('top_bids').select('*');
+  const { data:closed } = await sb.from('auction_results').select('event_id');
   const bidMap={};
-  (topBids||[]).forEach(b=>{ bidMap[b.event_id]=(bidMap[b.event_id]||0)+parseInt(b.bid_count||0); });
-  const { data: closedEvents } = await sb.from('auction_results').select('event_id');
-  const closedSet = new Set((closedEvents||[]).map(r=>r.event_id));
+  (topBids||[]).forEach(b=>{bidMap[b.event_id]=(bidMap[b.event_id]||0)+parseInt(b.bid_count||0);});
+  const closedSet=new Set((closed||[]).map(r=>r.event_id));
   if (!events?.length) { tbody.innerHTML='<tr><td colspan="7" class="dash-empty">No events.</td></tr>'; return; }
   tbody.innerHTML=events.map(e=>{
     const isClosed=closedSet.has(e.id);
     const isPast=new Date(e.closes_at)<new Date();
-    const canClose=isPast&&!isClosed;
     return `<tr>
-      <td><strong>${e.artist}</strong><br><span style="font-size:11px;color:var(--muted)">${e.venue}</span></td>
-      <td style="font-size:12px;color:var(--muted)">${e.profiles?.email||'Seeded'}</td>
-      <td><span class="status-badge ${e.published?'status-live':'status-draft'}">${isClosed?'Closed':e.published?'Live':'Draft'}</span></td>
-      <td style="font-family:var(--font-mono);font-size:11px;">${new Date(e.closes_at).toLocaleDateString()}</td>
-      <td style="font-family:var(--font-mono)">${bidMap[e.id]||0}</td>
-      <td>${canClose?`<button class="dash-btn" style="font-size:11px;padding:5px 12px;" onclick="adminCloseAuction('${e.id}')">Close auction</button>`:isClosed?'<span style="font-size:11px;color:var(--acid);font-family:var(--font-mono)">✓ Processed</span>':''}</td>
-      <td><button class="dash-btn-danger" onclick="adminTogglePublish('${e.id}',${e.published})">${e.published?'Unpublish':'Publish'}</button></td>
+      <td><strong>${esc(e.artist)}</strong><br><span style="font-size:11px;color:var(--muted)">${esc(e.venue)}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${esc(e.profiles?.email||'Seeded')}</td>
+      <td><span class="status-badge ${isClosed?'status-closed':e.published?'status-live':'status-draft'}">${isClosed?'Closed':e.published?'Live':'Draft'}</span></td>
+      <td style="font-family:var(--fm);font-size:11px">${fmtDate(e.closes_at)}</td>
+      <td style="font-family:var(--fm)">${bidMap[e.id]||0}</td>
+      <td>${isPast&&!isClosed?`<button class="dash-btn-sm" onclick="adminCloseAuction('${esc(e.id)}')">Close auction</button>`:isClosed?'<span style="font-size:11px;color:var(--acid);font-family:var(--fm)">✓ Done</span>':''}</td>
+      <td><button class="dash-btn-danger" onclick="adminTogglePublish('${esc(e.id)}',${e.published})">${e.published?'Unpublish':'Publish'}</button></td>
     </tr>`;}).join('');
 }
 
-async function adminTogglePublish(id, current) {
+async function adminTogglePublish(id,current) {
   await sb.from('events').update({published:!current}).eq('id',id);
+  toast(current?'Unpublished':'Published!','ok');
   loadAdminEvents();
 }
 
 async function adminCloseAuction(eventId) {
   if (!confirm('Close this auction now? This will determine winners and losers and cannot be undone.')) return;
   const { data, error } = await sb.rpc('close_auction',{p_event_id:eventId});
-  if (error||!data?.ok) { alert('Error: '+(data?.error||error?.message||'Unknown')); return; }
-  alert(`Closed. Winners: ${data.winners}, Losers: ${data.losers}`);
+  if (error||!data?.ok) { toast('Error: '+(data?.error||error?.message||'Unknown'),'err'); return; }
+  toast(`Closed — ${data.winners} winner(s), ${data.losers} loser(s)`,'ok');
   loadAdminEvents();
 }
 
 async function loadAdminUsers() {
-  const tbody = document.getElementById('admin-users-body');
-  const { data: users } = await sb.from('profiles').select('*').order('created_at',{ascending:false});
-  if (!users?.length) { tbody.innerHTML='<tr><td colspan="4" class="dash-empty">No users yet.</td></tr>'; return; }
+  const tbody=document.getElementById('admin-users-body');
+  const { data:users } = await sb.from('profiles').select('*').order('created_at',{ascending:false});
+  allAdminUsers=users||[];
+  renderAdminUsers(allAdminUsers);
+}
+
+function filterAdminUsers(q) {
+  const filtered=q?allAdminUsers.filter(u=>u.email?.toLowerCase().includes(q.toLowerCase())):allAdminUsers;
+  renderAdminUsers(filtered);
+}
+
+function renderAdminUsers(users) {
+  const tbody=document.getElementById('admin-users-body');
+  if (!users.length) { tbody.innerHTML='<tr><td colspan="5" class="dash-empty">No users found.</td></tr>'; return; }
   tbody.innerHTML=users.map(u=>`<tr>
-    <td style="font-family:var(--font-mono);font-size:12px">${u.email}</td>
+    <td style="font-family:var(--fm);font-size:12px">${esc(u.email||'—')}</td>
     <td><span class="role-badge role-${u.role}">${u.role}</span></td>
-    <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted)">${new Date(u.created_at).toLocaleDateString()}</td>
-    <td><select class="dash-select" style="padding:4px 8px;font-size:11px;width:120px;" onchange="changeUserRole('${u.id}',this.value)">
+    <td style="font-family:var(--fm);font-size:11px;color:var(--muted)">${fmtDate(u.created_at)}</td>
+    <td><select class="dash-select" style="padding:4px 8px;font-size:11px;width:120px" onchange="changeUserRole('${esc(u.id)}',this.value)">
       <option value="attendee" ${u.role==='attendee'?'selected':''}>Attendee</option>
       <option value="promoter" ${u.role==='promoter'?'selected':''}>Promoter</option>
       <option value="admin"    ${u.role==='admin'?'selected':''}>Admin</option>
     </select></td>
+    <td><button class="dash-btn-danger" onclick="deleteUser('${esc(u.id)}','${esc(u.email||'')}')">Delete</button></td>
   </tr>`).join('');
 }
 
 async function changeUserRole(userId, role) {
   await sb.from('profiles').update({role}).eq('id',userId);
+  toast('Role updated to '+role,'ok');
+  loadAdminUsers();
+}
+
+async function deleteUser(userId, email) {
+  if (!confirm(`Delete user ${email}? This cannot be undone.`)) return;
+  await sb.from('profiles').delete().eq('id',userId);
+  toast('User deleted','err');
+  loadAdminUsers();
 }
 
 async function loadAdminInvites() {
-  const tbody = document.getElementById('admin-invites-body');
-  const { data: invites } = await sb.from('invites').select('*').order('created_at',{ascending:false});
+  const tbody=document.getElementById('admin-invites-body');
+  const { data:invites } = await sb.from('invites').select('*').order('created_at',{ascending:false});
   if (!invites?.length) { tbody.innerHTML='<tr><td colspan="4" class="dash-empty">No invites sent yet.</td></tr>'; return; }
   tbody.innerHTML=invites.map(i=>`<tr>
-    <td style="font-family:var(--font-mono);font-size:12px">${i.email}</td>
+    <td style="font-family:var(--fm);font-size:12px">${esc(i.email)}</td>
     <td><span class="role-badge role-${i.role}">${i.role}</span></td>
     <td style="font-size:12px;color:${i.used?'var(--acid)':'var(--muted)'}">${i.used?'✓ Accepted':'Pending'}</td>
-    <td style="font-family:var(--font-mono);font-size:11px;color:var(--muted)">${new Date(i.created_at).toLocaleDateString()}</td>
+    <td style="font-family:var(--fm);font-size:11px;color:var(--muted)">${fmtDate(i.created_at)}</td>
   </tr>`).join('');
 }
 
 async function sendInvite() {
-  const email = document.getElementById('invite-email').value.trim();
-  const role  = document.getElementById('invite-role').value;
-  const msg   = document.getElementById('invite-msg');
-  const btn   = document.getElementById('invite-btn');
+  const email=document.getElementById('invite-email').value.trim();
+  const role=document.getElementById('invite-role').value;
+  const msg=document.getElementById('invite-msg');
+  const btn=document.getElementById('invite-btn');
   if (!email) { msg.textContent='Enter an email address.'; msg.className='dash-msg err'; return; }
   btn.disabled=true; btn.textContent='Sending…';
-  const { error } = await sb.from('invites').insert({email, role, invited_by:currentUser.id});
+  const { error } = await sb.from('invites').insert({email,role,invited_by:currentUser.id});
   if (error) { msg.textContent=error.code==='23505'?'Already invited.':error.message; msg.className='dash-msg err'; }
   else { msg.textContent='✓ Invite created for '+email; msg.className='dash-msg ok'; document.getElementById('invite-email').value=''; loadAdminInvites(); }
   btn.disabled=false; btn.textContent='Send Invite';
 }
 
-// ── START ─────────────────────────────────────────────────────────────────────
-// Load events immediately — no auth required to view them
+// ── INIT ──────────────────────────────────────────────────────────────────────
 loadAndRenderEvents('all');
-
-// Auth state handles nav + role-based links
-// We use a flag to prevent concurrent profile fetches
-let authBusy = false;
-sb.auth.onAuthStateChange((_event, session) => {
-  const user = session?.user || null;
-  currentUser = user;
-  console.log('[auth] event:', _event, 'user:', user?.email || 'none');
-
-  if (!user) {
-    currentProfile = null;
-    updateNav(null, null);
-    authBusy = false;
-    return;
-  }
-
-  if (authBusy) {
-    console.log('[auth] skipping — already loading profile');
-    return;
-  }
-  authBusy = true;
-
-  // Load profile without holding the auth lock (no await inside the listener)
-  sb.from('profiles').select('*').eq('id', user.id).single()
-    .then(({ data: profile, error }) => {
-      console.log('[auth] profile loaded:', profile?.role, error?.message);
-      currentProfile = profile;
-      updateNav(user, profile?.role || 'attendee');
-      authBusy = false;
-    });
-});
 </script>
 </body>
 </html>
