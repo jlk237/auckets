@@ -1477,13 +1477,34 @@ async function sendInvite() {
 loadAndRenderEvents('all');
 
 // Auth state handles nav + role-based links
-sb.auth.onAuthStateChange(async (_event, session) => {
+// We use a flag to prevent concurrent profile fetches
+let authBusy = false;
+sb.auth.onAuthStateChange((_event, session) => {
   const user = session?.user || null;
   currentUser = user;
-  if (!user) { currentProfile = null; updateNav(null, null); return; }
-  const { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).single();
-  currentProfile = profile;
-  updateNav(user, profile?.role || 'attendee');
+  console.log('[auth] event:', _event, 'user:', user?.email || 'none');
+
+  if (!user) {
+    currentProfile = null;
+    updateNav(null, null);
+    authBusy = false;
+    return;
+  }
+
+  if (authBusy) {
+    console.log('[auth] skipping — already loading profile');
+    return;
+  }
+  authBusy = true;
+
+  // Load profile without holding the auth lock (no await inside the listener)
+  sb.from('profiles').select('*').eq('id', user.id).single()
+    .then(({ data: profile, error }) => {
+      console.log('[auth] profile loaded:', profile?.role, error?.message);
+      currentProfile = profile;
+      updateNav(user, profile?.role || 'attendee');
+      authBusy = false;
+    });
 });
 </script>
 </body>
