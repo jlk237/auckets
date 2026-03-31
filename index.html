@@ -940,10 +940,17 @@ textarea.dash-input{resize:vertical;min-height:70px}
 <script>
 'use strict';
 
-// ── CONFIG ────────────────────────────────────────────────────────────────────
-const SUPABASE_URL  = 'https://yofnjuyoxmtrgfdpagvn.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvZm5qdXlveG10cmdmZHBhZ3ZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MTM0MDQsImV4cCI6MjA5MDI4OTQwNH0.NnJ3tE0xQ2FiOvE8BO8OGDvOv7uZafkye-nOBGkN87k';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+// ── CONFIG — fetch config from server
+let sb;
+async function initSupabase() {
+  const res = await fetch('/api/config');
+  const { supabaseUrl, supabaseAnon } = await res.json();
+  sb = supabase.createClient(supabaseUrl, supabaseAnon);
+  await initAuth();
+  loadAndRenderEvents('all');
+}
+
+initSupabase();
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let currentUser    = null;
@@ -1073,16 +1080,25 @@ function doSignout() {
 }
 
 // ── AUTH STATE ────────────────────────────────────────────────────────────────
-sb.auth.onAuthStateChange((_event, session) => {
-  const user = session?.user || null;
-  currentUser = user;
-  if (!user) { currentProfile=null; updateNav(null,null); return; }
-  sb.from('profiles').select('*').eq('id',user.id).single()
-    .then(({ data:profile }) => {
-      currentProfile = profile;
-      updateNav(user, profile?.role||'attendee');
-    });
-});
+async function initAuth() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    currentUser = session.user;
+    const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+    currentProfile = profile;
+    updateNav(session.user, profile?.role || 'attendee');
+  }
+
+  sb.auth.onAuthStateChange(async (_event, session) => {
+    const user = session?.user || null;
+    currentUser = user;
+    if (!user) { currentProfile = null; updateNav(null, null); return; }
+    const { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).single();
+    currentProfile = profile;
+    updateNav(user, profile?.role || 'attendee');
+    if (_event === 'SIGNED_IN') closeModal();
+  });
+}
 
 // ── EVENTS ────────────────────────────────────────────────────────────────────
 let currentFilter = 'all';
@@ -1768,7 +1784,6 @@ async function sendInvite() {
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-loadAndRenderEvents('all');
 </script>
 </body>
 </html>
