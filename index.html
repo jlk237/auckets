@@ -972,6 +972,11 @@ async function initSupabase() {
 
 function initStripe(publishableKey) {
   stripeInstance = Stripe(publishableKey);
+}
+
+function mountCard() {
+  if (!stripeInstance) return;
+  if (cardElement) { try { cardElement.unmount(); } catch(e) {} cardElement = null; }
   const elements = stripeInstance.elements({
     style: {
       base: {
@@ -1244,6 +1249,12 @@ async function openBid(eventId) {
       document.getElementById('bid-meta-row').textContent=currentBidCount+' bids · auction live';
       addActivityItem(bid.amount,null,bid.tier,false);
     }).subscribe();
+
+  // Reset card form state and mount Stripe card element now that page is visible
+  document.getElementById('card-form-section').style.display = 'none';
+  document.getElementById('continue-btn').style.display = '';
+  document.getElementById('card-errors').textContent = '';
+  mountCard();
 }
 
 async function renderSeatMap(eventId) {
