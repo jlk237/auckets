@@ -6,7 +6,6 @@
 <title>Auckets — Bid fair. Win real.</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://js.stripe.com/v3/"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -644,26 +643,13 @@ textarea.dash-input{resize:vertical;min-height:70px}
         <div class="sidebar-label" id="bid-input-label">Your bid — Lock it in</div>
         <div class="bid-input-row">
           <input class="bid-input" id="bid-input" type="number" placeholder="$0" min="1">
+          <button class="place-bid-btn" id="place-bid-btn" onclick="placeBid()">Bid now</button>
         </div>
         <div class="bid-increment-row">
           <button class="increment-btn" onclick="addAmount(10)">+$10</button>
           <button class="increment-btn" onclick="addAmount(25)">+$25</button>
           <button class="increment-btn" onclick="addAmount(50)">+$50</button>
           <button class="increment-btn" onclick="addAmount(100)">+$100</button>
-        </div>
-        <!-- Step 1: continue button -->
-        <button class="place-bid-btn" id="continue-btn" onclick="showCardForm()" style="width:100%;padding:12px;margin-top:0.75rem">
-          Continue →
-        </button>
-        <!-- Step 2: card form, shown after amount validated -->
-        <div id="card-form-section" style="display:none;margin-top:1rem">
-          <div class="sidebar-label" style="margin-bottom:0.5rem">Card details — hold placed on bid</div>
-          <div id="card-element" style="background:var(--paper);border:1.5px solid var(--border);border-radius:1px;padding:10px 14px;margin-bottom:0.75rem"></div>
-          <div id="card-errors" style="font-family:var(--fm);font-size:11px;color:#c94b1e;margin-bottom:0.75rem;min-height:16px"></div>
-          <button class="place-bid-btn" id="place-bid-btn" onclick="placeBid()" style="width:100%;padding:12px">
-            Confirm bid &amp; hold card
-          </button>
-          <button class="increment-btn" onclick="cancelCardForm()" style="width:100%;margin-top:8px;text-align:center">Cancel</button>
         </div>
         <div class="bid-winning-indicator" id="bid-winning-indicator" style="display:none"></div>
       </div>
@@ -955,60 +941,9 @@ textarea.dash-input{resize:vertical;min-height:70px}
 'use strict';
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
-let sb;
-let SUPABASE_URL = '';
-let stripeInstance = null;
-let cardElement = null;
-
-async function initSupabase() {
-  const res = await fetch('/api/config');
-  const { supabaseUrl, supabaseAnon, stripePublishableKey } = await res.json();
-  SUPABASE_URL = supabaseUrl;
-  sb = supabase.createClient(supabaseUrl, supabaseAnon);
-  initStripe(stripePublishableKey);
-  await initAuth();
-  loadAndRenderEvents('all');
-}
-
-function initStripe(publishableKey) {
-  stripeInstance = Stripe(publishableKey);
-  const elements = stripeInstance.elements({
-    style: {
-      base: {
-        color: '#3d0e09',
-        fontFamily: '"JetBrains Mono", monospace',
-        fontSize: '14px',
-        '::placeholder': { color: '#9a7a52' }
-      },
-      invalid: { color: '#c94b1e' }
-    }
-  });
-  cardElement = elements.create('card');
-  cardElement.mount('#card-element');
-  cardElement.on('change', (e) => {
-    document.getElementById('card-errors').textContent = e.error ? e.error.message : '';
-  });
-}
-
-async function initAuth() {
-  const { data: { session } } = await sb.auth.getSession();
-  if (session) {
-    currentUser = session.user;
-    const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
-    currentProfile = profile;
-    updateNav(session.user, profile?.role || 'attendee');
-  }
-
-  sb.auth.onAuthStateChange(async (_event, session) => {
-    const user = session?.user || null;
-    currentUser = user;
-    if (!user) { currentProfile = null; updateNav(null, null); return; }
-    const { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).single();
-    currentProfile = profile;
-    updateNav(user, profile?.role || 'attendee');
-    if (_event === 'SIGNED_IN') closeModal();
-  });
-}
+const SUPABASE_URL  = 'https://yofnjuyoxmtrgfdpagvn.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlvZm5qdXlveG10cmdmZHBhZ3ZuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MTM0MDQsImV4cCI6MjA5MDI4OTQwNH0.NnJ3tE0xQ2FiOvE8BO8OGDvOv7uZafkye-nOBGkN87k';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
 let currentUser    = null;
@@ -1137,7 +1072,17 @@ function doSignout() {
   sb.auth.signOut();
 }
 
-// ── AUTH STATE — handled inside initAuth() above ──────────────────────────────
+// ── AUTH STATE ────────────────────────────────────────────────────────────────
+sb.auth.onAuthStateChange((_event, session) => {
+  const user = session?.user || null;
+  currentUser = user;
+  if (!user) { currentProfile=null; updateNav(null,null); return; }
+  sb.from('profiles').select('*').eq('id',user.id).single()
+    .then(({ data:profile }) => {
+      currentProfile = profile;
+      updateNav(user, profile?.role||'attendee');
+    });
+});
 
 // ── EVENTS ────────────────────────────────────────────────────────────────────
 let currentFilter = 'all';
@@ -1320,115 +1265,28 @@ async function loadRecentActivity(eventId) {
 }
 
 // ── BIDDING ───────────────────────────────────────────────────────────────────
-function showCardForm() {
-  if (!currentUser) { openModal(); return; }
-  const inp = document.getElementById('bid-input');
-  const val = parseInt(inp.value);
-  const curTop = currentPrices[activeTier] || 0;
-  if (!val || val < 1) {
-    inp.classList.add('err'); setTimeout(() => inp.classList.remove('err'), 800);
-    toast('Enter a valid bid amount', 'err'); return;
-  }
-  if (val <= curTop) {
-    inp.classList.add('err'); setTimeout(() => inp.classList.remove('err'), 800);
-    toast('Bid must be higher than $' + curTop, 'err'); return;
-  }
-  document.getElementById('card-form-section').style.display = '';
-  document.getElementById('continue-btn').style.display = 'none';
-}
-
-function cancelCardForm() {
-  document.getElementById('card-form-section').style.display = 'none';
-  document.getElementById('continue-btn').style.display = '';
-  document.getElementById('card-errors').textContent = '';
-  if (cardElement) cardElement.clear();
-}
-
 async function placeBid() {
   if (!currentUser) { openModal(); return; }
-  const inp = document.getElementById('bid-input');
-  const val = parseInt(inp.value);
-  const curTop = currentPrices[activeTier] || 0;
-  const isAmber = activeTier === 'lowball';
-
-  if (!val || val < 1) {
-    inp.classList.add('err'); setTimeout(() => inp.classList.remove('err'), 800);
-    toast('Enter a valid bid amount', 'err'); return;
+  const inp=document.getElementById('bid-input');
+  const val=parseInt(inp.value);
+  const curTop=currentPrices[activeTier]||0;
+  if (!val||val<1) { inp.classList.add('err'); setTimeout(()=>inp.classList.remove('err'),800); toast('Enter a valid bid amount','err'); return; }
+  if (val<=curTop) { inp.classList.add('err'); setTimeout(()=>inp.classList.remove('err'),800); toast('Bid must be higher than $'+curTop,'err'); return; }
+  const btn=document.getElementById('place-bid-btn');
+  btn.disabled=true; btn.textContent='Placing…';
+  const section=document.querySelector('.seat-block[data-selected="true"]')?.dataset.section||'General';
+  const { data, error } = await sb.rpc('place_bid',{p_event_id:currentEvent.id,p_tier:activeTier,p_amount:val,p_section:section});
+  btn.disabled=false; btn.textContent='Bid now';
+  if (error||!data?.ok) {
+    toast(data?.error||'Error placing bid — please try again','err');
+    if (data?.current_top) { currentPrices[activeTier]=data.current_top; updatePriceDisplay(); }
+    return;
   }
-  if (val <= curTop) {
-    inp.classList.add('err'); setTimeout(() => inp.classList.remove('err'), 800);
-    toast('Bid must be higher than $' + curTop, 'err'); return;
-  }
-
-  const btn = document.getElementById('place-bid-btn');
-  btn.disabled = true; btn.textContent = 'Creating hold…';
-
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    const section = document.querySelector('.seat-block[data-selected="true"]')?.dataset.section || 'General';
-
-    // Step 1 — create payment intent hold via Edge Function
-    const intentRes = await fetch(`${SUPABASE_URL}/functions/v1/create-payment-intent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-      body: JSON.stringify({ amount: val, eventId: currentEvent.id, tier: activeTier, section })
-    });
-    const intentData = await intentRes.json();
-    if (!intentData.clientSecret) {
-      toast(intentData.error || 'Error creating payment hold', 'err');
-      btn.disabled = false; btn.textContent = 'Confirm bid & hold card'; return;
-    }
-
-    // Step 2 — confirm card with Stripe (places the hold)
-    btn.textContent = 'Confirming card…';
-    const { error: stripeError } = await stripeInstance.confirmCardPayment(
-      intentData.clientSecret,
-      { payment_method: { card: cardElement } }
-    );
-    if (stripeError) {
-      document.getElementById('card-errors').textContent = stripeError.message;
-      toast('Card error — bid not placed', 'err');
-      btn.disabled = false; btn.textContent = 'Confirm bid & hold card'; return;
-    }
-
-    // Step 3 — record bid in Supabase with payment intent ID
-    btn.textContent = 'Recording bid…';
-    const { data, error } = await sb.rpc('place_bid', {
-      p_event_id: currentEvent.id,
-      p_tier: activeTier,
-      p_amount: val,
-      p_section: section,
-      p_payment_intent_id: intentData.paymentIntentId
-    });
-
-    if (error || !data?.ok) {
-      // Bid failed server-side — release the Stripe hold immediately
-      toast('Bid failed — releasing card hold', 'err');
-      await fetch(`${SUPABASE_URL}/functions/v1/release-payment-intent`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-        body: JSON.stringify({ paymentIntentId: intentData.paymentIntentId })
-      });
-      if (data?.current_top) { currentPrices[activeTier] = data.current_top; updatePriceDisplay(); }
-      btn.disabled = false; btn.textContent = 'Confirm bid & hold card'; return;
-    }
-
-    // Success — update UI
-    currentPrices[activeTier] = val;
-    updatePriceDisplay(); checkWinning();
-    currentBidCount++;
-    document.getElementById('bid-meta-row').textContent = currentBidCount + ' bids · auction live';
-    inp.value = ''; inp.placeholder = '$' + (val + 1);
-    cancelCardForm();
-    toast('Bid of $' + val + ' placed — card held', isAmber ? 'amber' : 'ok');
-    addActivityItem(val, 'You', activeTier, false);
-
-  } catch (err) {
-    toast('Unexpected error — please try again', 'err');
-    console.error(err);
-  }
-
-  btn.disabled = false; btn.textContent = 'Confirm bid & hold card';
+  currentPrices[activeTier]=val; updatePriceDisplay(); checkWinning();
+  currentBidCount++;
+  document.getElementById('bid-meta-row').textContent=currentBidCount+' bids · auction live';
+  inp.value=''; inp.placeholder='$'+(val+1);
+  toast('Bid of $'+val+' placed!', activeTier==='lowball'?'amber':'ok');
 }
 
 function shareEvent() {
@@ -1879,14 +1737,25 @@ async function changeUserRole(userId, role) {
 
 async function deleteUser(userId, email) {
   if (!confirm(`Delete user ${email}? This cannot be undone.`)) return;
+
   const { data: { session } } = await sb.auth.getSession();
+
   const res = await fetch(`${SUPABASE_URL}/functions/v1/delete-user`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`
+    },
     body: JSON.stringify({ userId })
   });
+
   const result = await res.json();
-  if (!result.ok) { toast('Error deleting user: ' + (result.error || 'Unknown'), 'err'); return; }
+
+  if (!result.ok) {
+    toast('Error deleting user: ' + (result.error || 'Unknown'), 'err');
+    return;
+  }
+
   toast('User fully deleted', 'err');
   loadAdminUsers();
 }
@@ -1917,7 +1786,7 @@ async function sendInvite() {
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-initSupabase();
+loadAndRenderEvents('all');
 </script>
 </body>
 </html>
