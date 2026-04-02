@@ -977,7 +977,8 @@ function initStripe(publishableKey) {
 function mountCard() {
   if (!stripeInstance) return;
   if (cardElement) { try { cardElement.unmount(); } catch(e) {} cardElement = null; }
-  const elements = stripeInstance.elements({
+  const elements = stripeInstance.elements();
+  cardElement = elements.create('card', {
     style: {
       base: {
         color: '#3d0e09',
@@ -988,7 +989,6 @@ function mountCard() {
       invalid: { color: '#c94b1e' }
     }
   });
-  cardElement = elements.create('card');
   cardElement.mount('#card-element');
   cardElement.on('change', (e) => {
     document.getElementById('card-errors').textContent = e.error ? e.error.message : '';
@@ -1375,7 +1375,12 @@ async function placeBid() {
   btn.disabled = true; btn.textContent = 'Creating hold…';
 
   try {
-    const { data: { session } } = await sb.auth.getSession();
+    const { data: { session } } = await sb.auth.refreshSession();
+    if (!session?.access_token) {
+      toast('Session expired — please log in again', 'err');
+      btn.disabled = false; btn.textContent = 'Confirm bid & hold card';
+      openModal(); return;
+    }
     const section = document.querySelector('.seat-block[data-selected="true"]')?.dataset.section || 'General';
 
     // Step 1 — create payment intent hold via Edge Function
